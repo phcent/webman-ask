@@ -218,9 +218,9 @@ class UserController
             if(!is_numeric($id) && empty($id)){
                 throw new \Exception('编号不正确');
             }
-            $askCollection = new AskCollection();
+            $askFollower = new AskFollower();
             $params = phcentParams(['page' => 1,'limit' =>10]);
-            $list  = $askCollection->where('to_user_id',$id)->with('user')->paginate($params['limit']);
+            $list  = $askFollower->where('to_user_id',$id)->with('user')->paginate($params['limit']);
             $list->map(function ($item){
                 if($item->user == null){
                     AskCollection::destroy($item->id);

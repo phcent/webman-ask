@@ -84,7 +84,9 @@ class AskMessage extends Model
      * @var array
      */
     protected $attributes = [
-
+        'is_read' => 2,
+        'user_del' => 2,
+        'to_user_del' => 2,
     ];
 
     /**

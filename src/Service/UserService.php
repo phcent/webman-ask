@@ -109,7 +109,8 @@ class UserService
                 'mobile'=> $mobile,
                 'mobile_verified_at' => Date::now(),
                 'password' => password_hash(mt_rand(1000000,9999999),PASSWORD_DEFAULT),
-                'name' => 'M'.$mobile
+                'name' => 'M'.$mobile,
+                'nick_name' => self::getRandName('m_',7,'nick_name')
             ]);
         }
         $token = AuthLogic::getInstance()->login($user);
@@ -156,7 +157,8 @@ class UserService
                     'mobile'=> $params->name,
                     'mobile_verified_at' => Date::now(),
                     'password' => password_hash($pwd,PASSWORD_DEFAULT),
-                    'name' => 'M'.$params->name
+                    'name' => 'M'.$params->name,
+                    'nick_name' => self::getRandName('m_',7,'nick_name')
                 ]);
                 $token = AuthLogic::getInstance()->login($info);
                 self::afterLogin($token);
@@ -171,7 +173,8 @@ class UserService
                     'email'=> $params->name,
                     'email_verified_at' => Date::now(),
                     'password' => password_hash(mt_rand(1000000,9999999),PASSWORD_DEFAULT),
-                    'name' => self::getRandName('PY_',6,'name')
+                    'name' => self::getRandName('PY_',6,'name'),
+                    'nick_name' => self::getRandName('e_',7,'nick_name')
                 ]);
                 $token = AuthLogic::getInstance()->login($info);
                 self::afterLogin($token);

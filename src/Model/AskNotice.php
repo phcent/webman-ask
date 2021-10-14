@@ -100,4 +100,9 @@ class AskNotice extends Model
         return $this->hasOne(AskUser::class,'id','user_id');
     }
 
+    public function fromUser()
+    {
+        return $this->hasOne(AskUser::class,'id','from_user_id');
+    }
+
 }

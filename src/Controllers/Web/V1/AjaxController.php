@@ -65,6 +65,9 @@ class AjaxController
     public function card(Request $request, $id)
     {
         try {
+            if(!is_numeric($id) && empty($id)) {
+                throw new \Exception('编号参数异常');
+            }
             $userId = AuthLogic::getInstance()->userId();
             $data = IndexService::getUserCard($id,$userId);
             return phcentSuccess($data);
@@ -181,12 +184,13 @@ class AjaxController
     {
         try {
             phcentMethod(['POST','DELETE','PUT']);
+            if(!is_numeric($id) && empty($id)) {
+                throw new \Exception('编号参数异常');
+            }
             $userId = AuthLogic::getInstance()->userId();
             if(empty($userId)){
                 throw new \Exception('请先登入');
             }
-
-            var_dump($request->all());
 
             Validator::input($request->all(), [
                 'theme_id' => Validator::digit()->min(1)->setName('项目编号'),

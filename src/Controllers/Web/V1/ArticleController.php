@@ -58,9 +58,9 @@ class ArticleController
                     });
                 }
                 if($item->user == null){
-                    $item->user_nam = '异常';
+                    $item->user_name = '异常';
                 }else{
-                    $item->user_nam = $item->user->nick_name;
+                    $item->user_name = $item->user->nick_name;
                 }
                 $item->setHidden(['user']);
             });

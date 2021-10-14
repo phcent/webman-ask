@@ -87,11 +87,15 @@ class CollectionService
                 if($answer == null){
                     throw new \Exception('回答不存在');
                 }
+                $question = AskQuestion::where('id',$answer->question_id)->first();
+                if($question == null){
+                    throw new \Exception('问题不存在');
+                }
                 AskCollection::create([
                     'user_id' => $userId,
                     'theme_id' => $themeId,
                     'type' => $type,
-                   // 'title' => '',
+                    'title' =>$question->title,
                      'content' => $answer->content,
                 ]);
                 $answer->increment('collection_num');
