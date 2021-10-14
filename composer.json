@@ -1,0 +1,41 @@
+{
+  "name": "phcent/webman-ask",
+  "description": "webman",
+  "keywords": ["webman", "phcent", "bbs"],
+  "require": {
+    "php": ">=7.3",
+    "illuminate/database": "^8.0",
+    "illuminate/pagination": "^8.62",
+    "vlucas/phpdotenv": "^5.1.0",
+    "illuminate/redis": "^8.62",
+    "firebase/php-jwt": "^5.4",
+    "overtrue/easy-sms": "^1.3",
+    "workerman/validation": "^3.0",
+    "symfony/translation": "^5.3"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Phcent\\WebmanAsk\\": "src/"
+    },
+    "files": [
+      "helpers.php"
+    ]
+  },
+
+  "authors": [
+    {
+      "name": "Uncle Song",
+      "email": "8988354@qq.com"
+    }
+  ],
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.x-dev"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev"
+}
