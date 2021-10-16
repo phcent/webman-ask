@@ -43,9 +43,20 @@ class AnswerController
                 throw new \Exception('编号不正确');
             }
             $askAnswer = new AskAnswer();
-            $bestAnswer = AskAnswer::where('question_id',$id)->whereNotNull('reward_time')->first();
+            $bestAnswer = AskAnswer::where('question_id',$id)->with('user')->whereNotNull('reward_time')->first();
+
             //排除最佳答案
             if($bestAnswer != null){
+                if($bestAnswer->user != null){
+                    $bestAnswer->user_name = $bestAnswer->user->nick_name;
+                    $bestAnswer->user_avatar = $bestAnswer->user->avatar_url;
+                    $bestAnswer->user_description = $bestAnswer->user->description;
+                }else{
+                    $bestAnswer->user_name = '会员不存在';
+                    $bestAnswer->user_avatar = '';
+                    $bestAnswer->user_description = '';
+                }
+                $bestAnswer->setHidden(['user']);
                 $askAnswer = $askAnswer->where('id','<>',$bestAnswer->id);
             }
             $params = phcentParams(['page' => 1,'limit' =>10]);

@@ -25,6 +25,7 @@ use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskTagsQa;
 use Phcent\WebmanAsk\Model\User;
+use support\Db;
 
 class QuestionService
 {

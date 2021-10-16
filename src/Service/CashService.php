@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Service;
 
 
 use Illuminate\Support\Facades\Date;
-use Phcent\WebmanAsk\Model\CashLog;
+use Phcent\WebmanAsk\Model\UserCashLog;
 use Phcent\WebmanAsk\Model\User;
 
 class CashService
@@ -44,7 +44,7 @@ class CashService
         if($params['amount'] > $user->available_balance){
             throw new \Exception('可用余额不足');
         }
-       $cash =  CashLog::create([
+       $cash =  UserCashLog::create([
             'amount' => $params['amount'],
             'cash_sn' => self::getCashSn($user->id),
             'user_id' => $user->id,

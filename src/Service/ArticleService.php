@@ -17,15 +17,19 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskArticle;
 use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskReply;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskTagsQa;
 use Phcent\WebmanAsk\Model\User;
+use support\Db;
 
 class ArticleService
 {
+
+
     /**
      * 新增文章
      * @param $params

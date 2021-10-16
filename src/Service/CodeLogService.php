@@ -17,7 +17,7 @@
 namespace Phcent\WebmanAsk\Service;
 
 
-use Phcent\WebmanAsk\Model\CodeLog;
+use Phcent\WebmanAsk\Model\UserCodeLog;
 use Phcent\WebmanAsk\Model\User;
 
 class CodeLogService
@@ -59,7 +59,7 @@ class CodeLogService
                 $content = '您正在进行身份安全验证，验证码是：'.$authCode.'。';
         }
 
-        $logId = CodeLog::create([
+        $logId = UserCodeLog::create([
             'type' => $smsCode['type'],
             'code' => $authCode,
             'receiver' => $smsCode['mobile'],
@@ -141,7 +141,7 @@ class CodeLogService
                 $content = '您正在进行身份安全验证，验证码是：'.$authCode;
         }
 
-        $logId = CodeLog::create([
+        $logId = UserCodeLog::create([
             'type' => $params['type'],
             'code' => $authCode,
             'receiver' => $params['email'],
@@ -190,7 +190,7 @@ class CodeLogService
      */
     public static function verifyCode($mobile,$code,$type=1,$role=2)
     {
-        $codeLog = CodeLog::where('receiver',$mobile)->where('type',$type)->where('role',$role)->where('code',$code)->where('status','0')->first();
+        $codeLog = UserCodeLog::where('receiver',$mobile)->where('type',$type)->where('role',$role)->where('code',$code)->where('status','0')->first();
         if($codeLog == null){
             return false;
         }

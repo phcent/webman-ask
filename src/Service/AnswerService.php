@@ -18,11 +18,12 @@ namespace Phcent\WebmanAsk\Service;
 
 
 use Illuminate\Support\Facades\Date;
+use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Model\AskArticle;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskReply;
-use Phcent\WebmanAsk\Model\AskUser;
+use support\Db;
 
 class AnswerService
 {

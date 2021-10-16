@@ -19,7 +19,7 @@ namespace Phcent\WebmanAsk\Service;
 use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\User;
-use Phcent\WebmanAsk\Model\UserLog;
+use Phcent\WebmanAsk\Model\AdminLog;
 
 use support\Db;
 
@@ -263,7 +263,7 @@ class UserService
      */
     public static function addLog($text,$router,$userId,$userName,$params=[])
     {
-        UserLog::create([
+        AdminLog::create([
             'user_id' => $userId,
             'user_name' => $userName,
             'content' => $text,

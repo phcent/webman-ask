@@ -73,7 +73,7 @@ class InfoController
             }else{
                 Validator::input($request->post(), [
                     'name' => Validator::Alnum()->length(4,15)->noWhitespace()->setName('用户名'),
-                    'nick_name' => Validator::Alnum()->length(2,20)->noWhitespace()->setName('昵称'),
+                    'nick_name' => Validator::stringType()->length(2,20)->noWhitespace()->setName('昵称'),
                 ]);
                 $params = phcentParams('name','nick_name','description');
                 if($params['name'] != $user->name){

@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 分类数据管理
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -15,7 +15,6 @@
 
 
 namespace Phcent\WebmanAsk\Service;
-
 
 use Phcent\WebmanAsk\Model\AskCategory;
 use support\bootstrap\Redis;

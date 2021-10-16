@@ -17,7 +17,7 @@
 namespace Phcent\WebmanAsk\Service;
 
 
-use Phcent\WebmanAsk\Model\BalanceLog;
+use Phcent\WebmanAsk\Model\UserBalanceLog;
 use Phcent\WebmanAsk\Model\User;
 
 class BalanceService
@@ -30,7 +30,7 @@ class BalanceService
     public static function postReward($question,$user)
     {
         if($question->reward_balance > 0 && $question->reward_balance <= $user->available_balance){
-            BalanceLog::create([
+            UserBalanceLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_balance' => -$question->reward_balance,
@@ -53,7 +53,7 @@ class BalanceService
      */
     public static function cashApply($cash,$user)
     {
-        BalanceLog::create([
+        UserBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => -$cash->amount,
@@ -79,7 +79,7 @@ class BalanceService
         if($user == null){
             throw new \Exception('会员信息异常');
         }
-        BalanceLog::create([
+        UserBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => 0,
@@ -104,7 +104,7 @@ class BalanceService
         if($user == null){
             throw new \Exception('会员信息异常');
         }
-        BalanceLog::create([
+        UserBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => $cash->amount,
@@ -131,7 +131,7 @@ class BalanceService
         if($user == null){
             throw new \Exception('问题作者异常');
         }
-        BalanceLog::create([
+        UserBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => 0,
@@ -152,7 +152,7 @@ class BalanceService
                 $reward_balance = bcdiv(bcmul($question->reward_balance,$commission,0),100,2);
             }
             if($reward_balance){
-                BalanceLog::create([
+                UserBalanceLog::create([
                     'user_id' => $bestUser->id,
                     'user_name' => $bestUser->nick_name,
                     'available_balance' => $reward_balance,

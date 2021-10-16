@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\CodeLog;
+use Phcent\WebmanAsk\Model\UserCodeLog;
 
 use Phcent\WebmanAsk\Service\CodeLogService;
 use Phcent\WebmanAsk\Service\UserService;
@@ -110,7 +110,7 @@ class AuthController
                 throw new \Exception('请求类型错误');
             }
             UserService::getCode($params->name,$params->type);
-            $codeList = CodeLog::where('receiver',$params->name)->where('status',0)->get();
+            $codeList = UserCodeLog::where('receiver',$params->name)->where('status',0)->get();
             return phcentSuccess($codeList,'发送成功');
         }catch (\Exception $e){
             return phcentError($e->getMessage());

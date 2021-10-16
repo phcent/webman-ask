@@ -92,9 +92,14 @@ if (! function_exists('phcentParams')) {
                 if (!isset($data[$key])) {
                     continue;
                 }
+                //当传过来的值为非数字型 且为空时直接过滤掉
+                if(!is_numeric($data[$key]) && empty($data[$key])){
+                    continue;
+                }
             } else {
                 $default = $val;
             }
+
             $item[$key] = $data[$key] ?? $default;
         }
         if ($object) {

@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 问答文章数据模型
+ * 余额提现数据模型
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,11 +16,9 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
-
 use Phcent\WebmanAsk\Logic\PriceLogic;
 
-class AskArticle extends Model
+class UserCashLog extends Model
 {
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
@@ -30,7 +28,7 @@ class AskArticle extends Model
      *
      * @var string
      */
-    protected $table = 'ask_article';
+    protected $table = 'user_cash_log';
 
     /**
      * 与表关联的主键
@@ -87,20 +85,11 @@ class AskArticle extends Model
      * @var array
      */
     protected $attributes = [
-        'digg_num' => 0,
-        'step_num' => 0,
-        'view_num' => 0,
-        'report_num' => 0,
-        'collection_num' => 0,
-        'thank_num' => 0,
-        'reply_num' => 0,
-        'pay_num' => 0,
-        'reward_balance' => 0,
-        'reward_points' => 0,
-        'status' => 1,
-        'hot_sort' => 0,
-        'top_sort' => 0,
+        'status' => 10,
 
+    ];
+    protected $casts = [
+        'amount' => PriceLogic::class
     ];
 
     /**
@@ -109,19 +98,5 @@ class AskArticle extends Model
      * @var array
      */
     protected $guarded = [];
-    protected $casts = [
-        'reward_balance' => PriceLogic::class,
-        'reward_points' => PriceLogic::class,
-        'style' => 'json'
-    ];
 
-    public function tags()
-    {
-        return $this->belongsToMany(AskTags::class,'ask_tags_qa','article_id','tag_id');
-    }
-
-    public function user()
-    {
-        return $this->hasOne(User::class,'id','user_id');
-    }
 }
