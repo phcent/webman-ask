@@ -17,8 +17,14 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Overtrue\EasySms\EasySms;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Phcent\WebmanAsk\Model\UserCodeLog;
 use Phcent\WebmanAsk\Model\User;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Email;
 
 class CodeLogService
 {
@@ -69,38 +75,17 @@ class CodeLogService
             'content' => $content
         ]);
 
-        $config = [
-            // HTTP 请求的超时时间（秒）
-            'timeout' => 5.0,
-            // 默认发送配置
-            'default' => [
-                // 网关调用策略，默认：顺序调用
-                'strategy' => \Overtrue\EasySms\Strategies\OrderStrategy::class,
-                // 默认可用的发送网关
-                'gateways' => [
-                    'yunpian'
-                ],
-            ],
-            // 可用的网关配置
-            'gateways' => [
-                'yunpian' => [
-                    'api_key' => 'fd9ca9843ad6c37690606b685e529b95',
-                    'signature' => '【象讯科技】', // 内容中无签名时使用
-                ],
-            ],
-        ];
+        $config = config('phcentask.sms');
 
         //发送短信
-//        try {
-//            $easySms = new EasySms($config);
-//            $easySms->send($smsCode['mobile'], ['content'=> $content]//短信内容
-//                ,['yunpian']);
-//            return $logId;
-//        }catch (NoGatewayAvailableException $exception){
-//            dd($exception);
-//            throw new \Exception('发送短信失败');
-//            //  dd($exception->getExceptions());
-//        }
+        try {
+            $easySms = new EasySms($config);
+            $easySms->send($smsCode['mobile'], ['content'=> $content]//短信内容
+                );
+            return $logId;
+        }catch (NoGatewayAvailableException $exception){
+            throw new \Exception('发送短信失败');
+        }
 
     }
 
@@ -108,9 +93,10 @@ class CodeLogService
      * 发送邮件
      * @param $params
      * @param int $userId
+     * @return
      * @throws \Exception
      */
-    public static function sendEmail($params,$userId=0)
+    public static function sendEmail($params,$userId = 0)
     {
         //查询会员信息
         $user = User::where('email',$params['email'])->first();
@@ -171,10 +157,12 @@ class CodeLogService
                     </div>
             EOF;
 
-            Mail::html($text,function ($message) use ($title, $params) {
-                $message->to($params['email'])->subject($title);
-            });
-        }catch (NoGatewayAvailableException $exception){
+            $transport = Transport::fromDsn(config('phcentask.email.dsn'));
+            $mailer = new Mailer($transport);
+           $email = (new Email())->from(config('phcentask.email.form_address'))->to($params['email'])->subject($title)->html($text);
+           $mailer->send($email);
+            return $logId;
+        }catch (TransportExceptionInterface $exception){
             throw new \Exception('发送失败');
             //  dd($exception->getExceptions());
         }

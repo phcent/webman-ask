@@ -99,5 +99,35 @@ return [
         'article' => 2, //发布文章是否需要审核 1是 2否
         'answer' => 2, //发布回答是否需要审核 1是 2否
         'reply' => 2, //发布评论是否需要审核 1是 2否
+    ],
+    'email' => [
+        'dsn' => env('MAILER_DSN','smtp://username:password@smtp.qq.com:465'),
+        'encryption' => env('MAIL_ENCRYPTION','ssl'),
+        'form_address' => env('MAIL_FROM_ADDRESS',''),
+        'from_name' => env('MAIL_FROM_NAME','象讯问答系统'),
+    ],
+    'sms' => [
+        // HTTP 请求的超时时间（秒）
+        'timeout' => 5.0,
+        // 默认发送配置
+        'default' => [
+            // 网关调用策略，默认：顺序调用
+            'strategy' => \Overtrue\EasySms\Strategies\OrderStrategy::class,
+            // 默认可用的发送网关
+            'gateways' => [
+                'yunpian'
+            ],
+        ],
+        // 可用的网关配置
+        'gateways' => [
+            'errorlog' => [
+                'file' => '/tmp/easy-sms.log',
+            ],
+            'yunpian' => [
+                'api_key' => env('SMS_API_KEY',''),
+                'signature' => env('SMS_SIGNATURE','【象讯科技】'), // 内容中无签名时使用
+            ],
+            //...
+        ],
     ]
 ];
