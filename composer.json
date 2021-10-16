@@ -15,7 +15,7 @@
     "guzzlehttp/guzzle": "^7.3",
     "symfony/mailer": "^5.3"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "autoload": {
     "psr-4": {
       "Phcent\\WebmanAsk\\": "src/"

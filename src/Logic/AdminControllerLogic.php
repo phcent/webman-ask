@@ -286,7 +286,8 @@ class AdminControllerLogic
      * @return mixed
      */
     function insertGetAdminUpdate($info,$id){
-        return $data['info'] = $info;
+        $data['info'] = $info;
+        return $data;
     }
 
     /**
