@@ -6,7 +6,7 @@
   "require": {
     "php": ">=7.3",
     "illuminate/database": "^8.0",
-    "illuminate/pagination": "^8.62",
+    "illuminate/pagination": "^8.62.0",
     "vlucas/phpdotenv": "^5.1.0",
     "illuminate/redis": "^8.62",
     "firebase/php-jwt": "^5.4",
