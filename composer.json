@@ -2,6 +2,7 @@
   "name": "phcent/webman-ask",
   "description": "webman",
   "keywords": ["webman", "phcent", "bbs"],
+  "type": "library",
   "require": {
     "php": ">=7.3",
     "illuminate/database": "^8.0",
@@ -24,20 +25,10 @@
       "helpers.php"
     ]
   },
-
   "authors": [
     {
       "name": "Uncle Song",
       "email": "8988354@qq.com"
     }
-  ],
-  "extra": {
-    "branch-alias": {
-      "dev-master": "1.x-dev"
-    }
-  },
-  "config": {
-    "sort-packages": true
-  },
-  "minimum-stability": "dev"
+  ]
 }
