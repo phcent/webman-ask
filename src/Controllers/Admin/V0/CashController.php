@@ -19,13 +19,13 @@ namespace Phcent\WebmanAsk\Controllers\Admin\V0;
 
 use Phcent\WebmanAsk\Logic\AdminControllerLogic;
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\UserCashLog;
+use Phcent\WebmanAsk\Model\SysCashLog;
 use Phcent\WebmanAsk\Service\CashService;
 use support\Request;
 
 class CashController extends AdminControllerLogic
 {
-    public  $model = \Phcent\WebmanAsk\Model\UserCashLog::class;
+    public  $model = \Phcent\WebmanAsk\Model\SysCashLog::class;
     public  $name = '提现';
     public  $projectName = '系统管理-提现管理-';
 
@@ -44,7 +44,7 @@ class CashController extends AdminControllerLogic
             if(!in_array($params['status'],[1,2])){
                 throw new \Exception('参数错误');
             }
-            $cashInfo = UserCashLog::where('id',$id)->where('status',10)->first();
+            $cashInfo = SysCashLog::where('id',$id)->where('status',10)->first();
             if($cashInfo == null){
                 throw new \Exception('该提现已被操作');
             }

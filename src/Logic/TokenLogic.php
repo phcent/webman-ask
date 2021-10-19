@@ -75,13 +75,14 @@ class TokenLogic
         try {
             JWT::$leeway = 60; //当前时间减去60，把时间留点余地
             $decoded = JWT::decode($jwt, $key, ['HS256']); //HS256方式，这里要和签发的时候对应
-            $arr = (array)$decoded;
+            $arr = (array) $decoded;
             return ['status'=>200,'msg'=>'success','data'=>$arr]; //返回信息
         } catch(\Firebase\JWT\SignatureInvalidException $e) { //签名不正确
             return ['status'=>101,'msg'=>$e->getMessage(),'data'=>'']; //返回信息 101=签名不正确
         }catch(\Firebase\JWT\BeforeValidException $e) { // 签名在某个时间点之后才能用
             return ['status'=>102,'msg'=>$e->getMessage(),'data'=>'']; //返回信息
         }catch(\Firebase\JWT\ExpiredException $e) { // token过期
+
             return ['status'=>103,'msg'=>$e->getMessage(),'data'=>'']; //返回信息 103=token过期
         }catch(\Exception $e) { //其他错误
             return ['status'=>199,'msg'=>$e->getMessage(),'data'=>'']; //返回信息 199 其他错误

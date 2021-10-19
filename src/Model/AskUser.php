@@ -107,6 +107,6 @@ class AskUser extends Model
 
     public function user()
     {
-        return $this->hasOne(User::class,'id','id');
+        return $this->hasOne(SysUser::class,'id','id');
     }
 }

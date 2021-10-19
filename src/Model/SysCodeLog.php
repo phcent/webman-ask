@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 余额变动日志
+ *
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,12 +16,9 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
+use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
-
-use App\Listeners\Price;
-
-class UserBalanceLog extends Model
+class SysCodeLog extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -32,7 +29,7 @@ class UserBalanceLog extends Model
      *
      * @var string
      */
-    protected $table = 'user_balance_log';
+    protected $table = 'sys_code_log';
 
     /**
      * 与表关联的主键
@@ -98,12 +95,4 @@ class UserBalanceLog extends Model
      * @var array
      */
     protected $guarded = [];
-
-    protected $casts = [
-        'available_balance' => Price::class,
-        'freeze_balance' => Price::class,
-        'old_available_balance' => Price::class,
-        'old_freeze_balance' => Price::class,
-    ];
-
 }

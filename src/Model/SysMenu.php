@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 积分变动日志
+ * 管理菜单
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -17,10 +17,7 @@
 namespace Phcent\WebmanAsk\Model;
 
 
-
-use Phcent\WebmanAsk\Logic\PriceLogic;
-
-class PointsLog extends Model
+class SysMenu extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -31,7 +28,7 @@ class PointsLog extends Model
      *
      * @var string
      */
-    protected $table = 'points_log';
+    protected $table = 'sys_menu';
 
     /**
      * 与表关联的主键
@@ -88,7 +85,7 @@ class PointsLog extends Model
      * @var array
      */
     protected $attributes = [
-
+        'status' => 1
     ];
 
     /**
@@ -97,12 +94,5 @@ class PointsLog extends Model
      * @var array
      */
     protected $guarded = [];
-
-    protected $casts = [
-        'available_points' => PriceLogic::class,
-        'freeze_points' => PriceLogic::class,
-        'old_available_points' => PriceLogic::class,
-        'old_freeze_points' => PriceLogic::class,
-    ];
 
 }

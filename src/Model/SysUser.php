@@ -14,9 +14,12 @@
  */
 namespace Phcent\WebmanAsk\Model;
 
-class User extends Model
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class SysUser extends Model
 {
-    protected $table = 'users';
+    use SoftDeletes;
+    protected $table = 'sys_users';
 
     protected $attributes=[
         'login_num' => 0,

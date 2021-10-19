@@ -98,7 +98,7 @@ class AskFollower extends Model
 
     public function toUser()
     {
-        return $this->hasOne(User::class,'id','to_user_id');
+        return $this->hasOne(SysUser::class,'id','to_user_id');
     }
 
     public function question()
@@ -108,6 +108,6 @@ class AskFollower extends Model
 
     public function user()
     {
-        return $this->hasOne(User::class,'id','user_id');
+        return $this->hasOne(SysUser::class,'id','user_id');
     }
 }

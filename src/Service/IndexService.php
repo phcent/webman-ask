@@ -24,7 +24,7 @@ use Phcent\WebmanAsk\Model\AskFollower;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskUser;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
 use support\bootstrap\Redis;
 
 class IndexService
@@ -158,7 +158,7 @@ class IndexService
      */
     public static function getUserCard($id,$userId)
     {
-        $user = User::where('id',$id)->first();
+        $user = SysUser::where('id',$id)->first();
         $askUser = AskUser::firstOrCreate(['id'=>$id]);
         $data['user_name'] = $user->nick_name;
         $data['user_id'] = $user->id;

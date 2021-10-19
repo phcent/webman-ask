@@ -18,8 +18,8 @@ namespace Phcent\WebmanAsk\Service;
 
 use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\User;
-use Phcent\WebmanAsk\Model\AdminLog;
+use Phcent\WebmanAsk\Model\SysUser;
+use Phcent\WebmanAsk\Model\SysLog;
 
 use support\Db;
 
@@ -103,9 +103,9 @@ class UserService
         if(!$codeVerify){
             throw new \Exception('验证码错误');
         }
-        $user = User::where('mobile',$mobile)->first();
+        $user = SysUser::where('mobile',$mobile)->first();
         if($user == null){
-            $user = User::create([
+            $user = SysUser::create([
                 'mobile'=> $mobile,
                 'mobile_verified_at' => Date::now(),
                 'password' => password_hash(mt_rand(1000000,9999999),PASSWORD_DEFAULT),
@@ -153,7 +153,7 @@ class UserService
         if ($is_mobile){
             if(CodeLogService::verifyCode($params->name,$params->code,1)){
                 $pwd = mt_rand(1000000,9999999);
-                $info = User::create([
+                $info = SysUser::create([
                     'mobile'=> $params->name,
                     'mobile_verified_at' => Date::now(),
                     'password' => password_hash($pwd,PASSWORD_DEFAULT),
@@ -169,7 +169,7 @@ class UserService
 
         }else if($is_email){
             if(CodeLogService::verifyCode($params->name,$params->code,1,1)){
-                $info = User::create([
+                $info = SysUser::create([
                     'email'=> $params->name,
                     'email_verified_at' => Date::now(),
                     'password' => password_hash(mt_rand(1000000,9999999),PASSWORD_DEFAULT),
@@ -203,11 +203,11 @@ class UserService
             $user_name .= $chars[mt_rand(0, count($chars)-1)];
         }
         $user_name = $prefix.strtoupper(base_convert(time() - 1420070400, 10, 36)).$user_name;
-        $user = User::where( $name , $user_name)->first();
+        $user = SysUser::where( $name , $user_name)->first();
         if(!empty($user)) {
             for ($i = 1;$i < 3;$i++) {
                 $user_name .= $chars[mt_rand(0, count($chars)-1)];
-                $user = User::where( $name , $user_name)->first();
+                $user = SysUser::where( $name , $user_name)->first();
                 if(empty($user)) {//查询为空表示当前会员名可用
                     break;
                 }
@@ -227,7 +227,7 @@ class UserService
         $is_email = phcentIsEmailText($params->name);
         if ($is_mobile){
             if(CodeLogService::verifyCode($params->name,$params->code,3)){
-                $user = User::where('mobile',$params->name)->first();
+                $user = SysUser::where('mobile',$params->name)->first();
                 if($user ==null){
                     throw new \Exception('手机号不存在');
                 }
@@ -239,7 +239,7 @@ class UserService
 
         }else if($is_email){
             if(CodeLogService::verifyCode($params->name,$params->code,3,1)){
-                $user = User::where('email',$params->name)->first();
+                $user = SysUser::where('email',$params->name)->first();
                 if($user ==null){
                     throw new \Exception('会员邮箱不存在');
                 }
@@ -263,7 +263,7 @@ class UserService
      */
     public static function addLog($text,$router,$userId,$userName,$params=[])
     {
-        AdminLog::create([
+        SysLog::create([
             'user_id' => $userId,
             'user_name' => $userName,
             'content' => $text,

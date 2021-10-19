@@ -19,7 +19,7 @@ namespace Phcent\WebmanAsk\Controllers\User\V1;
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskMessage;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
 use Respect\Validation\Validator;
 use support\Request;
 
@@ -111,7 +111,7 @@ class MessageController
                 'content' => Validator::length(3,5000)->setName('私信内容'),
             ]);
             $params = phcentParams(['to_user_id','content']);
-            $toUser = User::where('id',$params['to_user_id'])->first();
+            $toUser = SysUser::where('id',$params['to_user_id'])->first();
             if($toUser == null){
                 throw new \Exception('会员异常');
             }

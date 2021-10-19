@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 余额变动日志
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,12 +16,11 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\Storage;
 
-class Article extends Model
+use Phcent\WebmanAsk\Logic\PriceLogic;
+
+class SysBalanceLog extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -32,7 +31,7 @@ class Article extends Model
      *
      * @var string
      */
-    protected $table = 'article';
+    protected $table = 'sys_balance_log';
 
     /**
      * 与表关联的主键
@@ -89,13 +88,7 @@ class Article extends Model
      * @var array
      */
     protected $attributes = [
-        'type' => 1,
-        'group' => 1,
-        'status' => 0,
-        'view' => 0,
-        'likes' => 0,
-        'comment' => 0,
-        'sort' => 0,
+
     ];
 
     /**
@@ -105,23 +98,11 @@ class Article extends Model
      */
     protected $guarded = [];
 
-    protected $appends = ['image_url','year','mouth'];
+    protected $casts = [
+        'available_balance' => PriceLogic::class,
+        'freeze_balance' => PriceLogic::class,
+        'old_available_balance' => PriceLogic::class,
+        'old_freeze_balance' => PriceLogic::class,
+    ];
 
-    public function getImageUrlAttribute($key)
-    {
-        return $this->image_name ? (preg_match('/^http(s)?:\\/\\/.+/',$this->image_name)?$this->image_name:Storage::url($this->image_name)) :'';
-    }
-
-    public function cate()
-    {
-        return $this->hasOne(ArticleCate::class,'id','cate_id');
-    }
-    public function getYearAttribute($key)
-    {
-        return Date::parse($this->created_at)->format('Y');
-    }
-    public function getMouthAttribute($key)
-    {
-        return Date::parse($this->created_at)->format('m-d');
-    }
 }

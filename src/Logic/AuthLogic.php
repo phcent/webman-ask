@@ -48,13 +48,13 @@ class AuthLogic
     public function attempt($data =[]){
         try {
             if(is_array($data)) {
+
                 $user = $this->getUserClass();
                 foreach ($data as $key=>$val){
                     if($key === 'password'){
-                       // password_hash()
                     //    $user->where( $key, md5($val));
                     }else{
-                        $user->where($key,$val);
+                        $user = $user->where($key,$val);
                     }
                 }
                 $user = $user->first();
@@ -63,9 +63,8 @@ class AuthLogic
                         throw new \Exception('密码错误');
                     }
                 }
-
                 if($user != null){
-                    $token = TokenLogic::createToken(['id'=>$user->id,'guard'=>$this->guard]);
+                    $token = TokenLogic::createToken(['id'=>$user->id,'current_team_id'=>$user->current_team_id,'guard'=>$this->guard]);
                     if($token['status'] == 200){
                         session([ 'token' => $token['token']]);
                         return  $token['token'];
@@ -94,8 +93,9 @@ class AuthLogic
     public function guard($name)
     {
         if(!empty($name)){
-            return $this->guard = $name;
+            $this->guard = $name;
         }
+        return $this;
     }
 
     /**
@@ -148,7 +148,7 @@ class AuthLogic
         return 0;
     }
 
-    private function getUserData(){
+    public function getUserData(){
         try {
             $header = request()->header('Authorization', '');
             if (Str::startsWith($header, 'Bearer ')) {
@@ -174,7 +174,7 @@ class AuthLogic
      */
     public function login($user)
     {
-        $token = TokenLogic::createToken(['id'=>$user->id,'guard'=>$this->guard]);
+        $token = TokenLogic::createToken(['id'=>$user->id,'current_team_id'=>$user->current_team_id,'guard'=>$this->guard]);
         if($token['status'] == 200){
             session([ 'token' => $token['token']]);
             return  $token['token'];

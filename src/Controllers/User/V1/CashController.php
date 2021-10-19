@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Controllers\User\V1;
 
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\UserCashLog;
+use Phcent\WebmanAsk\Model\SysCashLog;
 use Phcent\WebmanAsk\Service\CashService;
 use Respect\Validation\Validator;
 use support\Db;
@@ -39,7 +39,7 @@ class CashController
             if($user == null){
                 throw new \Exception('会员未登入');
             }
-            $cashLog = new UserCashLog();
+            $cashLog = new SysCashLog();
             $cashLog = phcentWhereParams($cashLog, $request->all());
             if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
                 $cashLog = $cashLog->orderBy(request()->input('sortName'), request()->input('sortOrder'));

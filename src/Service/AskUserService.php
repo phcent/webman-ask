@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskFollower;
 use Phcent\WebmanAsk\Model\AskUser;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
 
 class AskUserService
 {
@@ -126,7 +126,7 @@ class AskUserService
     public static function getUInfo($userId)
     {
         $uid = AuthLogic::getInstance()->userId();
-        $user = User::where('id',$userId)->first();
+        $user = SysUser::where('id',$userId)->first();
         if($user == null){
             throw new \Exception('会员信息异常');
         }

@@ -18,8 +18,8 @@ namespace Phcent\WebmanAsk\Service;
 
 
 use Phcent\WebmanAsk\Model\AskUser;
-use Phcent\WebmanAsk\Model\UserPointsLog;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysPointsLog;
+use Phcent\WebmanAsk\Model\SysUser;
 
 class PointsService
 {
@@ -30,7 +30,7 @@ class PointsService
      */
     public static function postReward($question,$user){
         if($question->reward_points > 0 && $question->reward_points <= $user->available_balance){
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => -$question->reward_points,
@@ -52,10 +52,10 @@ class PointsService
      */
     public static function deleteAnswer($askAnswer)
     {
-        $user = User::where('id',$askAnswer->user_id)->first();
+        $user = SysUser::where('id',$askAnswer->user_id)->first();
         $points = config('phcentask.points.publishAnswer',3);
         if($user != null){
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => -$points,
@@ -78,10 +78,10 @@ class PointsService
      */
     public static function publishAnswer($askAnswer)
     {
-        $user = User::where('id',$askAnswer->user_id)->first();
+        $user = SysUser::where('id',$askAnswer->user_id)->first();
         $points = config('phcentask.points.publishAnswer',1);
         if($user != null){
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => $points,
@@ -103,7 +103,7 @@ class PointsService
      */
     public static function deleteReply($askReply)
     {
-        $user = User::where('id',$askReply->user_id)->first();
+        $user = SysUser::where('id',$askReply->user_id)->first();
         $points = config('phcentask.points.publishReply',1);
         if($user != null){
             if($askReply->type == 1){
@@ -112,7 +112,7 @@ class PointsService
                 $description = '删除文章评论,编号：'.$askReply->theme_id.'减少积分：'. $points;
             }
 
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => -$points,
@@ -135,7 +135,7 @@ class PointsService
      */
     public static function publishReply($askCommentReply)
     {
-        $user = User::where('id',$askCommentReply->user_id)->first();
+        $user = SysUser::where('id',$askCommentReply->user_id)->first();
         $points = config('phcentask.points.publishReply',1);
         if($user != null){
             if($askCommentReply->type == 1){
@@ -143,7 +143,7 @@ class PointsService
             }else{
                 $description = '发表文章评论,编号：'.$askCommentReply->theme_id.'增加积分：'. $points;
             }
-           UserPointsLog::create([
+           SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => $points,
@@ -165,10 +165,10 @@ class PointsService
      */
     public static function publishQuestion($askQuestion)
     {
-        $user = User::where('id',$askQuestion->user_id)->first();
+        $user = SysUser::where('id',$askQuestion->user_id)->first();
         $points = config('phcentask.points.publishQuestion',3);
         if($user != null){
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => $points,
@@ -190,10 +190,10 @@ class PointsService
      */
     public static function publishArticle($askArticle)
     {
-        $user = User::where('id',$askArticle->user_id)->first();
+        $user = SysUser::where('id',$askArticle->user_id)->first();
         $points = config('phcentask.points.publishArticle',5);
         if($user != null){
-            UserPointsLog::create([
+            SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_points' => $points,
@@ -218,11 +218,11 @@ class PointsService
      */
     public static function bestAnswer($question,$userId)
     {
-        $user = User::where('id',$question->user_id)->first();
+        $user = SysUser::where('id',$question->user_id)->first();
         if($user == null){
             throw new \Exception('问题作者异常');
         }
-        UserPointsLog::create([
+        SysPointsLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_points' => 0,
@@ -235,7 +235,7 @@ class PointsService
         //减少冻结积分
         $user->decrement('freeze_points',$question->freeze_points); //直接减少冻结积分
 
-        $bestUser = User::where('id',$userId)->first();
+        $bestUser = SysUser::where('id',$userId)->first();
         if($bestUser != null){
             $commission = config('phcentask.pointsCommission',0);
             $reward_points = $question->reward_points;
@@ -243,7 +243,7 @@ class PointsService
                 $reward_points = bcdiv(bcmul($question->reward_points,$commission,0),100,2);
             }
             if($reward_points > 0){
-                UserPointsLog::create([
+                SysPointsLog::create([
                     'user_id' => $bestUser->id,
                     'user_name' => $bestUser->nick_name,
                     'available_points' => 0,

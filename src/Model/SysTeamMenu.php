@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 后台管理菜单
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Model;
 
 //use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
-class AdminTeam extends Model
+class SysTeamMenu extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -29,7 +29,7 @@ class AdminTeam extends Model
      *
      * @var string
      */
-    protected $table = 'admin_team';
+    protected $table = 'sys_team_menu';
 
     /**
      * 与表关联的主键

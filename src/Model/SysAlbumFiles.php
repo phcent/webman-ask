@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 余额提现数据模型
+ * 附件
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,10 +16,9 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-use Phcent\WebmanAsk\Logic\PriceLogic;
-
-class UserCashLog extends Model
+class SysAlbumFiles extends Model
 {
+
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
 
@@ -28,7 +27,7 @@ class UserCashLog extends Model
      *
      * @var string
      */
-    protected $table = 'user_cash_log';
+    protected $table = 'sys_album_files';
 
     /**
      * 与表关联的主键
@@ -85,11 +84,7 @@ class UserCashLog extends Model
      * @var array
      */
     protected $attributes = [
-        'status' => 10,
 
-    ];
-    protected $casts = [
-        'amount' => PriceLogic::class
     ];
 
     /**
@@ -99,4 +94,10 @@ class UserCashLog extends Model
      */
     protected $guarded = [];
 
+    protected $appends = ['files_url'];
+
+    public function getFilesUrlAttribute()
+    {
+       // return $this->name ? (preg_match('/^http(s)?:\\/\\/.+/',$this->name)?$this->name:'' :'';
+    }
 }

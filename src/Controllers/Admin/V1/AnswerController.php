@@ -27,7 +27,30 @@ class AnswerController extends AdminControllerLogic
     public  $model = \Phcent\WebmanAsk\Model\AskAnswer::class;
     public  $name = '回答';
     public  $projectName = '问答管理-回答管理';
+    /**
+     * 获取数据之前
+     * @param $model
+     * @return mixed
+     */
+    function beforeAdminIndex($model){
+        $model = $model->with(['user','question']);
+        return $model;
+    }
 
+    /**
+     * 获取数据之后
+     * @param $list
+     * @return mixed
+     */
+    function afterAdminIndex($list){
+        $list->map(function ($item){
+               $item->user_name = $item->user != null ? $item->user->nick_name:'';
+                $item->question_title = $item->question != null ? $item->question->title:'';
+               $item->setHidden(['user','question']);
+        });
+        $data['list'] = $list->items();
+        return $data;
+    }
     /**
      * 新增数据 支持get,post类型
      * @param Request $request

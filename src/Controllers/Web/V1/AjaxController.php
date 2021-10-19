@@ -20,12 +20,14 @@ namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskTags;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
+use Phcent\WebmanAsk\Service\AdminService;
 use Phcent\WebmanAsk\Service\AskDiggService;
 use Phcent\WebmanAsk\Service\CollectionService;
 use Phcent\WebmanAsk\Service\FollowerService;
 use Phcent\WebmanAsk\Service\IndexService;
 use Respect\Validation\Validator;
+use support\bootstrap\Redis;
 use support\Db;
 use support\Request;
 
@@ -84,7 +86,7 @@ class AjaxController
     public function user(Request $request)
     {
         try {
-            $user = new User();
+            $user = new SysUser();
             $params = phcentParams(['page' => 1,'limit' =>10,'nick_name_like','id']);
             $user = phcentWhereParams($user,$params);
             if ($request->input('sortName') && in_array($request->input('sortOrder'), array('asc', 'desc'))) {
@@ -213,7 +215,13 @@ class AjaxController
         }
     }
 
-
-
+    public function test()
+    {
+//        Redis::del(['siteArticleIndex','siteAdminMenu','siteAdminTeamMenu']);
+        $data['menu'] = AdminService::getAdminMenuCache();
+        $data['team'] = AdminService::getAdminTeamMenuCache();
+        $data['role'] = AdminService::getAdminRoleMenu(1);
+        return phcentSuccess($data);
+    }
 
 }

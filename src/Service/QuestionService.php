@@ -24,7 +24,7 @@ use Phcent\WebmanAsk\Model\AskReply;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskTagsQa;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
 use support\Db;
 
 class QuestionService
@@ -39,7 +39,7 @@ class QuestionService
      */
     public static function createQuestion($params,$userId)
     {
-        $user = User::where('id',$userId)->first();
+        $user = SysUser::where('id',$userId)->first();
         if($user == null){
             throw new \Exception('会员不存在');
         }

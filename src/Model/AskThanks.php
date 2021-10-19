@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 余额提现数据模型
+ * 问答感谢数据模型
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Model;
 
 use Phcent\WebmanAsk\Logic\PriceLogic;
 
-class CashLog extends Model
+class AskThanks extends Model
 {
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
@@ -28,7 +28,7 @@ class CashLog extends Model
      *
      * @var string
      */
-    protected $table = 'cash_log';
+    protected $table = 'ask_thanks';
 
     /**
      * 与表关联的主键
@@ -85,11 +85,7 @@ class CashLog extends Model
      * @var array
      */
     protected $attributes = [
-        'status' => 10,
-
-    ];
-    protected $casts = [
-        'amount' => PriceLogic::class
+        'status' => 2,
     ];
 
     /**
@@ -98,5 +94,18 @@ class CashLog extends Model
      * @var array
      */
     protected $guarded = [];
+    protected $casts = [
+        'amount' => PriceLogic::class
+    ];
+
+    public function user()
+    {
+        return $this->hasOne(SysUser::class,'id','user_id');
+    }
+
+    public function toUser()
+    {
+        return $this->hasOne(SysUser::class,'id','to_user_id');
+    }
 
 }

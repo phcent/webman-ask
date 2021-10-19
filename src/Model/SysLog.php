@@ -16,9 +16,7 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
-
-class WikiOld extends Model
+class SysLog extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -29,7 +27,7 @@ class WikiOld extends Model
      *
      * @var string
      */
-    protected $table = 'wiki_old';
+    protected $table = 'sys_log';
 
     /**
      * 与表关联的主键
@@ -95,4 +93,7 @@ class WikiOld extends Model
      * @var array
      */
     protected $guarded = [];
+    protected $casts = [
+        'param' => 'json'
+    ];
 }

@@ -18,7 +18,7 @@ namespace Phcent\WebmanAsk\Controllers\User\V1;
 
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\UserPointsLog;
+use Phcent\WebmanAsk\Model\SysPointsLog;
 use support\Request;
 
 class PointsController
@@ -37,7 +37,7 @@ class PointsController
             if(empty($userId)){
                 throw new \Exception('请先登入');
             }
-            $pointsLog = new UserPointsLog();
+            $pointsLog = new SysPointsLog();
             $pointsLog = phcentWhereParams($pointsLog, $request->all());
             if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
                 $pointsLog = $pointsLog->orderBy(request()->input('sortName'), request()->input('sortOrder'));

@@ -34,7 +34,7 @@ return [
         'headers' => 'Content-Type,Authorization,X-Requested-With,Accept,Origin'
     ],
     'guard' => [
-        'user' => Phcent\WebmanAsk\Model\User::class,
+        'user' => Phcent\WebmanAsk\Model\SysUser::class,
     ],
     //积分相关
     'points'=>[

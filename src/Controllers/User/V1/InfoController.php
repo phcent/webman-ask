@@ -17,7 +17,7 @@
 namespace Phcent\WebmanAsk\Controllers\User\V1;
 
 use Phcent\WebmanAsk\Logic\AuthLogic;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysUser;
 use Respect\Validation\Validator;
 use support\Request;
 
@@ -77,13 +77,13 @@ class InfoController
                 ]);
                 $params = phcentParams('name','nick_name','description');
                 if($params['name'] != $user->name){
-                    $user = User::where('name',$params['name'])->where('id','<>',$user->id)->first();
+                    $user = SysUser::where('name',$params['name'])->where('id','<>',$user->id)->first();
                     if($user !=null){
                         throw new \Exception('用户名已存在');
                     }
                 }
                 if($params['nick_name'] != $user->nick_name){
-                    $user = User::where('nick_name',$params['nick_name'])->where('id','<>',$user->id)->first();
+                    $user = SysUser::where('nick_name',$params['nick_name'])->where('id','<>',$user->id)->first();
                     if($user !=null){
                         throw new \Exception('昵称已存在');
                     }
@@ -125,13 +125,13 @@ class InfoController
                 ]);
                 $params = phcentParams('name','nick_name','description');
                 if($params['name'] != $user->name){
-                    $user = User::where('name',$params['name'])->where('id','<>',$user->id)->first();
+                    $user = SysUser::where('name',$params['name'])->where('id','<>',$user->id)->first();
                     if($user !=null){
                         throw new \Exception('用户名已存在');
                     }
                 }
                 if($params['nick_name'] != $user->nick_name){
-                    $user = User::where('nick_name',$params['nick_name'])->where('id','<>',$user->id)->first();
+                    $user = SysUser::where('nick_name',$params['nick_name'])->where('id','<>',$user->id)->first();
                     if($user !=null){
                         throw new \Exception('昵称已存在');
                     }

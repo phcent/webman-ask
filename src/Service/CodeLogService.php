@@ -19,8 +19,8 @@ namespace Phcent\WebmanAsk\Service;
 
 use Overtrue\EasySms\EasySms;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
-use Phcent\WebmanAsk\Model\UserCodeLog;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysCodeLog;
+use Phcent\WebmanAsk\Model\SysUser;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
@@ -41,7 +41,7 @@ class CodeLogService
     public static function sendSms($smsCode,$userId = 0)
     {
         //查询会员信息
-        $user = User::where('mobile',$smsCode['mobile'])->first();
+        $user = SysUser::where('mobile',$smsCode['mobile'])->first();
         if(!in_array($smsCode['type'],[self::REGISTER,self::LOGIN,self::FIND_PASSWORD])){
             throw new \Exception("手机验证类型错误");
         }
@@ -65,7 +65,7 @@ class CodeLogService
                 $content = '您正在进行身份安全验证，验证码是：'.$authCode.'。';
         }
 
-        $logId = UserCodeLog::create([
+        $logId = SysCodeLog::create([
             'type' => $smsCode['type'],
             'code' => $authCode,
             'receiver' => $smsCode['mobile'],
@@ -99,7 +99,7 @@ class CodeLogService
     public static function sendEmail($params,$userId = 0)
     {
         //查询会员信息
-        $user = User::where('email',$params['email'])->first();
+        $user = SysUser::where('email',$params['email'])->first();
         if(!in_array($params['type'],[self::REGISTER,self::LOGIN,self::FIND_PASSWORD])){
             throw new \Exception("邮箱验证类型错误");
         }
@@ -127,7 +127,7 @@ class CodeLogService
                 $content = '您正在进行身份安全验证，验证码是：'.$authCode;
         }
 
-        $logId = UserCodeLog::create([
+        $logId = SysCodeLog::create([
             'type' => $params['type'],
             'code' => $authCode,
             'receiver' => $params['email'],
@@ -178,7 +178,7 @@ class CodeLogService
      */
     public static function verifyCode($mobile,$code,$type=1,$role=2)
     {
-        $codeLog = UserCodeLog::where('receiver',$mobile)->where('type',$type)->where('role',$role)->where('code',$code)->where('status','0')->first();
+        $codeLog = SysCodeLog::where('receiver',$mobile)->where('type',$type)->where('role',$role)->where('code',$code)->where('status','0')->first();
         if($codeLog == null){
             return false;
         }

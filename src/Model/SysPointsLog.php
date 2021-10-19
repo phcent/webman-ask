@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 后台管理菜单
+ * 积分变动日志
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,9 +16,11 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
-class UserTeamMenu extends Model
+
+use Phcent\WebmanAsk\Logic\PriceLogic;
+
+class SysPointsLog extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -29,7 +31,7 @@ class UserTeamMenu extends Model
      *
      * @var string
      */
-    protected $table = 'user_team_menu';
+    protected $table = 'sys_points_log';
 
     /**
      * 与表关联的主键
@@ -95,5 +97,12 @@ class UserTeamMenu extends Model
      * @var array
      */
     protected $guarded = [];
+
+    protected $casts = [
+        'available_points' => PriceLogic::class,
+        'freeze_points' => PriceLogic::class,
+        'old_available_points' => PriceLogic::class,
+        'old_freeze_points' => PriceLogic::class,
+    ];
 
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 订单
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,9 +16,7 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
-
-class UserTeam extends Model
+class SysOrders extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -29,7 +27,7 @@ class UserTeam extends Model
      *
      * @var string
      */
-    protected $table = 'user_team';
+    protected $table = 'sys_orders';
 
     /**
      * 与表关联的主键
@@ -95,5 +93,4 @@ class UserTeam extends Model
      * @var array
      */
     protected $guarded = [];
-
 }

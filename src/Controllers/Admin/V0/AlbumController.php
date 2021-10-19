@@ -16,12 +16,12 @@
 namespace Phcent\WebmanAsk\Controllers\Admin\V0;
 
 use Phcent\WebmanAsk\Logic\AdminControllerLogic;
-use Phcent\WebmanAsk\Model\UserAlbumFiles;
+use Phcent\WebmanAsk\Model\SysAlbumFiles;
 use support\Request;
 
 class AlbumController extends AdminControllerLogic
 {
-    public  $model = \Phcent\WebmanAsk\Model\UserAlbumFiles::class;
+    public  $model = \Phcent\WebmanAsk\Model\SysAlbumFiles::class;
     public  $name = '附件列表';
     public  $projectName = '系统管理-附件管理-';
 }

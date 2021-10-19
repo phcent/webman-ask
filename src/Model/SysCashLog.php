@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 余额提现数据模型
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,11 +16,10 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
+use Phcent\WebmanAsk\Logic\PriceLogic;
 
-class UserLog extends Model
+class SysCashLog extends Model
 {
-
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
 
@@ -29,7 +28,7 @@ class UserLog extends Model
      *
      * @var string
      */
-    protected $table = 'user_log';
+    protected $table = 'sys_cash_log';
 
     /**
      * 与表关联的主键
@@ -86,7 +85,11 @@ class UserLog extends Model
      * @var array
      */
     protected $attributes = [
+        'status' => 10,
 
+    ];
+    protected $casts = [
+        'amount' => PriceLogic::class
     ];
 
     /**
@@ -95,7 +98,5 @@ class UserLog extends Model
      * @var array
      */
     protected $guarded = [];
-    protected $casts = [
-        'param' => 'json'
-    ];
+
 }

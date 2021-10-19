@@ -21,6 +21,7 @@ use Phcent\WebmanAsk\Logic\AskCommentLogic;
 use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskReply;
 
+use Phcent\WebmanAsk\Service\CategoryService;
 use support\Request;
 
 class ArticleController extends AdminControllerLogic
@@ -28,6 +29,13 @@ class ArticleController extends AdminControllerLogic
     public  $model = \Phcent\WebmanAsk\Model\AskArticle::class;
     public  $name = '文章';
     public  $projectName = '问答管理-文章管理-';
+
+    public function afterAdminIndex($list)
+    {
+        $data['list'] = $list->items();
+        $data['categoryList'] = CategoryService::getCategoryList(2);
+        return $data;
+    }
 
     /**
      * 新增数据 支持get,post类型

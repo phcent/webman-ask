@@ -17,28 +17,39 @@
 namespace Phcent\WebmanAsk\Middleware;
 
 
+use Illuminate\Support\Str;
 use Phcent\WebmanAsk\Logic\AuthLogic;
 
+use Phcent\WebmanAsk\Service\AdminService;
 use Webman\Http\Request;
 use Webman\Http\Response;
 use Webman\MiddlewareInterface;
 
 class AdminAuthMiddleware implements MiddlewareInterface
 {
+    /**
+     * 由于无法获取控制器信息 因此暂时不走中间件鉴权
+     * @param Request $request
+     * @param callable $next
+     * @return Response
+     */
     public function process(Request $request, callable $next) : Response
     {
-        $user = AuthLogic::getInstance()->user();
-        if($user != null){
-            if($user->current_team_id != 1){
-                return phcentError('无操作权限');
+        var_dump( $request->controller);
+        $header = $request->header('Authorization', '');
+        if (Str::startsWith($header, 'Bearer ')) {
+            $userData = AuthLogic::getInstance()->getUserData();
+            if($userData != null){
+                $haveRole = AdminService::checkHaveRole($userData);
+                if($haveRole){
+                    return $next($request);
+                }else{
+                    return phcentJson(config('phcentask.code.intel_authority'),'无权限访问');
+                }
             }
-            return $next($request);
+        }else{
+            return phcentJson(config('phcentask.code.intel_no_login'),'登入已过期');
         }
         return phcentError('请先登入');
-//        $session = $request->session();
-//        if (!$session->get('userinfo')) {
-//            return redirect('/user/login');
-//        }
-
     }
 }

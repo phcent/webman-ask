@@ -16,9 +16,9 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
+//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
-class CodeLog extends Model
+class SysTeam extends Model
 {
 
     // const CREATED_AT = 'created_at';
@@ -29,7 +29,7 @@ class CodeLog extends Model
      *
      * @var string
      */
-    protected $table = 'code_log';
+    protected $table = 'sys_team';
 
     /**
      * 与表关联的主键
@@ -95,4 +95,5 @@ class CodeLog extends Model
      * @var array
      */
     protected $guarded = [];
+
 }

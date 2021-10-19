@@ -22,6 +22,7 @@ use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskReply;
 
+use Phcent\WebmanAsk\Service\CategoryService;
 use support\Request;
 
 class QuestionController extends AdminControllerLogic
@@ -29,6 +30,13 @@ class QuestionController extends AdminControllerLogic
     public  $model = \Phcent\WebmanAsk\Model\AskQuestion::class;
     public  $name = '问题';
     public  $projectName = '问答管理-问题管理-';
+
+    public function afterAdminIndex($list)
+    {
+        $data['list'] = $list->items();
+        $data['categoryList'] = CategoryService::getCategoryList(1);
+        return $data;
+    }
 
     /**
      * 新增数据 支持get,post类型

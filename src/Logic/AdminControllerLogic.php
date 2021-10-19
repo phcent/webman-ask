@@ -16,13 +16,13 @@
 
 namespace Phcent\WebmanAsk\Logic;
 
-use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Service\UserService;
 use support\Db;
 use support\Request;
 
 class AdminControllerLogic
 {
+
     public  $guard = "user";
     public  $model = '';
     public  $name;

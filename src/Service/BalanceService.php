@@ -17,8 +17,8 @@
 namespace Phcent\WebmanAsk\Service;
 
 
-use Phcent\WebmanAsk\Model\UserBalanceLog;
-use Phcent\WebmanAsk\Model\User;
+use Phcent\WebmanAsk\Model\SysBalanceLog;
+use Phcent\WebmanAsk\Model\SysUser;
 
 class BalanceService
 {
@@ -30,7 +30,7 @@ class BalanceService
     public static function postReward($question,$user)
     {
         if($question->reward_balance > 0 && $question->reward_balance <= $user->available_balance){
-            UserBalanceLog::create([
+            SysBalanceLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
                 'available_balance' => -$question->reward_balance,
@@ -53,7 +53,7 @@ class BalanceService
      */
     public static function cashApply($cash,$user)
     {
-        UserBalanceLog::create([
+        SysBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => -$cash->amount,
@@ -75,11 +75,11 @@ class BalanceService
      */
     public static function agreeCash($cash)
     {
-        $user = User::where('id',$cash->user_id)->first();
+        $user = SysUser::where('id',$cash->user_id)->first();
         if($user == null){
             throw new \Exception('会员信息异常');
         }
-        UserBalanceLog::create([
+        SysBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => 0,
@@ -100,11 +100,11 @@ class BalanceService
      */
     public static function refuseCash($cash)
     {
-        $user = User::where('id',$cash->user_id)->first();
+        $user = SysUser::where('id',$cash->user_id)->first();
         if($user == null){
             throw new \Exception('会员信息异常');
         }
-        UserBalanceLog::create([
+        SysBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => $cash->amount,
@@ -127,11 +127,11 @@ class BalanceService
      */
     public static function bestAnswer($question,$userId)
     {
-        $user = User::where('id',$question->user_id)->first();
+        $user = SysUser::where('id',$question->user_id)->first();
         if($user == null){
             throw new \Exception('问题作者异常');
         }
-        UserBalanceLog::create([
+        SysBalanceLog::create([
             'user_id' => $user->id,
             'user_name' => $user->nick_name,
             'available_balance' => 0,
@@ -144,7 +144,7 @@ class BalanceService
         //减少冻结余额
         $user->decrement('freeze_balance',$question->reward_balance); //直接减少冻结资金
 
-        $bestUser = User::where('id',$userId)->first();
+        $bestUser = SysUser::where('id',$userId)->first();
         if($bestUser != null){
             $commission = config('phcentask.balanceCommission',0);
             $reward_balance = $question->reward_balance;
@@ -152,7 +152,7 @@ class BalanceService
                 $reward_balance = bcdiv(bcmul($question->reward_balance,$commission,0),100,2);
             }
             if($reward_balance){
-                UserBalanceLog::create([
+                SysBalanceLog::create([
                     'user_id' => $bestUser->id,
                     'user_name' => $bestUser->nick_name,
                     'available_balance' => $reward_balance,
