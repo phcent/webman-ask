@@ -16,6 +16,9 @@
 
 namespace Phcent\WebmanAsk;
 
+
+use Webman\Route;
+
 class AskAutoRoute
 {
     /**
@@ -24,12 +27,15 @@ class AskAutoRoute
     static function load()
     {
         AskRoute::group('/api', function () {
+
             collect(glob(app_path().'/phcent/*/routes.php'))->map(function($filename) {
                 AskRoute::group('/extend',function () use ($filename) {
                     return include_once $filename;
                 });
             });
-            AskRoute::group('/v0/admin/',  function () {
+
+
+           AskRoute::group('/v0/admin',  function () {
                 AskRoute::resource('/ajax',Controllers\Admin\V0\AjaxController::class,['test'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
                 AskRoute::resource('/album',Controllers\Admin\V0\AlbumController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/cash',Controllers\Admin\V0\CashController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
@@ -41,7 +47,7 @@ class AskAutoRoute
                 AskRoute::resource('/user',Controllers\Admin\V0\UserController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
             });
 
-            AskRoute::group('/v1/admin/', function () {
+            AskRoute::group('/v1/admin', function () {
                 AskRoute::resource('/answer',Controllers\Admin\V1\AnswerController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/article',Controllers\Admin\V1\ArticleController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/category',Controllers\Admin\V1\CategoryController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
