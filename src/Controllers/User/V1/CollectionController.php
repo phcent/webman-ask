@@ -41,7 +41,7 @@ class CollectionController
             }else{
                 $askCollection = $askCollection->orderBy('id','desc');
             }
-            $list  = $askCollection->where('user_id',$userId)->paginate($params['limit']);
+            $list  = $askCollection->where('user_id',$userId)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             return phcentSuccess($data,'收藏列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
         }catch (\Exception $e){

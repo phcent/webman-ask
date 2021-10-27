@@ -17,9 +17,11 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Model\SysMenu;
+use Phcent\WebmanAsk\Model\SysSite;
 use Phcent\WebmanAsk\Model\SysTeamMenu;
-use support\bootstrap\Redis;
+use support\Redis;
 
 class AdminService
 {
@@ -90,5 +92,29 @@ class AdminService
             Redis::set('siteAdminTeamMenu',$list);
         }
         return json_decode($list);
+    }
+
+    /**
+     * 验证站点是否存在
+     * @param $host
+     * @param $siteId
+     * @return string
+     * @throws \Exception
+     */
+    public static function checkSiteId($host,$siteId)
+    {
+        if(!$siteId){
+
+        }else{
+            $checked = Redis::get("getSiteId{$siteId}");
+            if($checked == null){
+                $siteInfo = SysSite::where('id',$siteId)->where('expire_time','>',Date::now())->first();
+                if($siteInfo == null){
+                    throw new \Exception('站点不存在，或已过期');
+                }
+                Redis::setEx("getSiteId{$siteId}",300, $siteInfo->toJson());
+            }
+            return $siteId;
+        }
     }
 }

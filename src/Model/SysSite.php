@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 问答标签数据模型
+ * 站点
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,10 +16,9 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
-
-class AskTags extends Model
+class SysSite extends Model
 {
+
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
 
@@ -28,7 +27,7 @@ class AskTags extends Model
      *
      * @var string
      */
-    protected $table = 'ask_tags';
+    protected $table = 'sys_site';
 
     /**
      * 与表关联的主键
@@ -85,12 +84,7 @@ class AskTags extends Model
      * @var array
      */
     protected $attributes = [
-        'question_num' => 0,
-        'article_num' => 0,
-        'follow_num' => 0,
-        'report_num' => 0,
-        'hot_sort' => 0,
-        'status' => 1,
+
     ];
 
     /**
@@ -99,15 +93,4 @@ class AskTags extends Model
      * @var array
      */
     protected $guarded = [];
-
-    public function question()
-    {
-        return $this->hasOne(AskQuestion::class,'id','question_id');
-    }
-
-    public function article()
-    {
-        return $this->hasOne(AskArticle::class,'id','article_id');
-    }
-
 }

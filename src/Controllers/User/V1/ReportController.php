@@ -39,7 +39,7 @@ class ReportController
             } else {
                 $askReport = $askReport->orderBy('id', 'desc')->orderBy('id', 'desc');
             }
-            $list = $askReport->paginate($request->input('limit',10));
+            $list = $askReport->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             return phcentSuccess( $data,'成功', ['page' => $list->currentPage(), 'total' => $list->total()]);
         } catch (\Exception $e) {

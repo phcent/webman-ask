@@ -17,7 +17,7 @@
 namespace Phcent\WebmanAsk\Service;
 
 use Phcent\WebmanAsk\Model\AskCategory;
-use support\bootstrap\Redis;
+use support\Redis;
 
 class CategoryService
 {
@@ -28,20 +28,23 @@ class CategoryService
      */
     public static function getCategoryList($type)
     {
-        $category = Redis::get('phcentAskCategory');
+        $siteId = request()->siteId;
+        $category = Redis::get("phcentAskCategory{$siteId}");
         if($category == null){
-            $category = AskCategory::get()->toJson();
-            Redis::set('phcentAskCategory',$category);
+            $category = AskCategory::where('site_id',$siteId)->get()->toJson();
+            Redis::set("phcentAskCategory{$siteId}",$category);
         }
         $category = json_decode($category);
-        return collect($category)->where('type',$type)->where('status',1)->all();
+        return collect($category)->where('type',$type)->where('status',1)->values()->all();
     }
 
     /**
      * 清除缓存
+     * @param $siteId
      */
     public static function delCache()
     {
-        Redis::del(['phcentAskCategory']);
+        $siteId = request()->siteId;
+        Redis::del(["phcentAskCategory{$siteId}"]);
     }
 }

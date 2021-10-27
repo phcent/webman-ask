@@ -18,7 +18,9 @@
 namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
 
+use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
+use Phcent\WebmanAsk\Model\AskSigninLog;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\SysUser;
 use Phcent\WebmanAsk\Service\AdminService;
@@ -26,8 +28,9 @@ use Phcent\WebmanAsk\Service\AskDiggService;
 use Phcent\WebmanAsk\Service\CollectionService;
 use Phcent\WebmanAsk\Service\FollowerService;
 use Phcent\WebmanAsk\Service\IndexService;
+use Phcent\WebmanAsk\Service\SigninService;
 use Respect\Validation\Validator;
-use support\bootstrap\Redis;
+use support\Redis;
 use support\Db;
 use support\Request;
 
@@ -49,7 +52,7 @@ class AjaxController
             }else{
                 $askTags = $askTags->orderBy('id','desc');
             }
-            $list  = $askTags->paginate($params['limit']);
+            $list  = $askTags->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
 
             $data['list'] = $list->items();
             return phcentSuccess($data,'话题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
@@ -94,7 +97,7 @@ class AjaxController
             }else{
                 $user = $user->orderBy('id','desc');
             }
-            $list  = $user->paginate($params['limit']);
+            $list  = $user->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 $item->setVisible(['nick_name','id','avatar_url']);
             });
@@ -215,13 +218,20 @@ class AjaxController
         }
     }
 
-    public function test()
+    /**
+     * 签到
+     * @param Request $request
+     * @return \support\Response
+     */
+    public function signin(Request $request)
     {
-//        Redis::del(['siteArticleIndex','siteAdminMenu','siteAdminTeamMenu']);
-        $data['menu'] = AdminService::getAdminMenuCache();
-        $data['team'] = AdminService::getAdminTeamMenuCache();
-        $data['role'] = AdminService::getAdminRoleMenu(1);
-        return phcentSuccess($data);
+        try {
+            phcentMethod(['GET']);
+           $data = SigninService::getIndexSigninRank();
+            return phcentSuccess($data);
+        }catch (\Exception $e){
+            return phcentError($e->getMessage());
+        }
     }
 
 }

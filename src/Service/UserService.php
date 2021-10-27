@@ -269,7 +269,8 @@ class UserService
             'content' => $text,
             'route' => $router,
             'param' => $params,
-            'ip' => request()->getRealIp()
+            'ip' => request()->getRealIp(),
+            'site_id' => request()->siteId
         ]);
     }
 }

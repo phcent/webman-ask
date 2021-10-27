@@ -14,20 +14,10 @@
  */
 
 
-namespace Phcent\WebmanAsk;
+namespace Phcent\WebmanAsk\Controllers\Admin\V1;
 
 
-use Webman\Route;
-
-class AskRoute extends Route
+class AjaxController
 {
 
-    public static function resource(string $name, string $controller, array $options = [])
-    {
-       return static::group($name,function () use ($controller, $options) {
-           foreach ($options as $action) {
-               static::any("/{$action}[/{id}]",[$controller,$action]);
-           }
-       });
-    }
 }

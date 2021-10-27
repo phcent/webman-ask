@@ -46,7 +46,7 @@ class CashController
             } else {
                 $cashLog = $cashLog->orderBy('id', 'desc')->orderBy('id', 'desc');
             }
-            $list = $cashLog->where('user_id',$user->id)->paginate($request->input('limit',10));
+            $list = $cashLog->where('user_id',$user->id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             $data['available_balance'] = $user->available_balance;
             return phcentSuccess( $data,'成功', ['page' => $list->currentPage(), 'total' => $list->total()]);

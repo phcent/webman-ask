@@ -29,9 +29,22 @@ class ArticleController extends AdminControllerLogic
     public  $model = \Phcent\WebmanAsk\Model\AskArticle::class;
     public  $name = '文章';
     public  $projectName = '问答管理-文章管理-';
+    /**
+     * 获取数据之前
+     * @param $model
+     * @return mixed
+     */
+    function beforeAdminIndex($model){
+        $model = $model->with(['user']);
+        return $model;
+    }
 
     public function afterAdminIndex($list)
     {
+        $list->map(function ($item){
+            $item->user_name = $item->user != null ? $item->user->nick_name:'';
+            $item->setHidden(['user']);
+        });
         $data['list'] = $list->items();
         $data['categoryList'] = CategoryService::getCategoryList(2);
         return $data;
@@ -48,7 +61,7 @@ class ArticleController extends AdminControllerLogic
     }
    public function insertGetAdminUpdate($info, $id)
    {
-       $data['category'] = AskCategory::where('type',2)->get();
+       $data['category'] = AskCategory::where('type',2)->where('site_id',\request()->siteId)->get();
        $data['info'] = $info;
        return $data;
    }
@@ -88,9 +101,9 @@ class ArticleController extends AdminControllerLogic
    }
    public function adminDestroy($user, $ids, $id)
    {
-       (new $this->model)->destroy($ids);
+       (new $this->model)->where('site_id',\request()->siteId)->destroy($ids);
        //删除评论
-       $askCommentReply = AskReply::whereIn('theme_id',$ids)->where('type',2)->get();
+       $askCommentReply = AskReply::whereIn('theme_id',$ids)->where('site_id',\request()->siteId)->where('type',2)->get();
        AskReply::destroy($askCommentReply->pluck('id'));
    }
 }

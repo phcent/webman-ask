@@ -41,7 +41,7 @@ class NoticeController
             }else{
                 $askNotice = $askNotice->orderBy('id','desc');
             }
-            $list  = $askNotice->where('user_id',$userId)->with('fromUser')->paginate($params['limit']);
+            $list  = $askNotice->where('user_id',$userId)->with('fromUser')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->fromUser != null){
                     $item->from_user_name = $item->fromUser->nick_name;

@@ -14,20 +14,23 @@
  */
 
 
-namespace Phcent\WebmanAsk;
+namespace Phcent\WebmanAsk\Controllers\Admin\V1;
 
 
-use Webman\Route;
+use support\Redis;
+use support\Request;
 
-class AskRoute extends Route
+class SettingController
 {
-
-    public static function resource(string $name, string $controller, array $options = [])
+    /**
+     * 清理缓存
+     * @param Request $request
+     */
+    public function cache(Request $request)
     {
-       return static::group($name,function () use ($controller, $options) {
-           foreach ($options as $action) {
-               static::any("/{$action}[/{id}]",[$controller,$action]);
-           }
-       });
+        $params = phcentParams(['']);
+        if(empty($params)){
+            Redis::del(['phcentAskNewQuestion10','phcentAskHotQuestion10','phcentAskHotTags50','phcentAskExpert5']);
+        }
     }
 }

@@ -45,7 +45,7 @@ class QuestionController
         try {
             phcentMethod(['GET']);
             $askQuestion = new AskQuestion();
-            $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
+            $params = phcentParams(['cate_id']);
             $askQuestion = phcentWhereParams($askQuestion,$params);
             $type = $request->input('type','new');
             switch ($type){
@@ -73,7 +73,7 @@ class QuestionController
                     $askQuestion = $askQuestion->where('status','<>',0)->orderBy('id','desc');
                     break;
             }
-            $list  = $askQuestion->with(['tags','user'])->paginate($params['limit']);
+            $list  = $askQuestion->with(['tags','user'])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->tags != null){
                     $item->tags->map(function ($item2){
@@ -96,7 +96,7 @@ class QuestionController
             $data['hotExpert'] = IndexService::getExpertOnline();
             $data['newQuestion'] = IndexService::getNewQuestion();
 
-            return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -270,20 +270,17 @@ class QuestionController
                     'content' => Validator::length(10,10000)->setName('提问内容'),
                     'cate_id' => Validator::digit()->min(1)->setName('问题分类'),
                 ]);
-                $params = phcentParams(['title','content','cate_id'=>0,'keyword'=>'','description'=>'','is_private'=>2,'tags']);
+                $params = phcentParams(['title','content','cate_id'=>0,'seo_title'=>'','seo_keyword'=>'','seo_description'=>'','is_private'=>2,'tags']);
                 $userId = AuthLogic::getInstance()->userId();
                 if(empty($userId)){
                     throw new \Exception('请先登入');
                 }
 
-                Db::connection()->beginTransaction();
                 QuestionService::updateQuestion($params,$id,$userId);
-                Db::connection()->commit();
                 return phcentSuccess();
             }
 
         }catch (\Exception $e){
-            Db::connection()->rollBack();
             return phcentError($e->getMessage());
         }
     }

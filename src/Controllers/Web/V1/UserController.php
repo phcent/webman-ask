@@ -49,7 +49,7 @@ class UserController
             }else{
                 $askDynamic = $askDynamic->orderBy('id','desc');
             }
-            $list  = $askDynamic->where('user_id',$id)->paginate($params['limit']);
+            $list  = $askDynamic->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             $data['dynamicType'] = config('phcentask.dynamicType');
             $data['dynamicStage'] = config('phcentask.dynamicStage');
@@ -82,7 +82,7 @@ class UserController
             }else{
                 $askQuestion = $askQuestion->orderBy('id','desc');
             }
-            $list  = $askQuestion->where('user_id',$id)->paginate($params['limit']);
+            $list  = $askQuestion->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
             return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
@@ -112,7 +112,7 @@ class UserController
             }else{
                 $askArticle = $askArticle->orderBy('id','desc');
             }
-            $list  = $askArticle->where('user_id',$id)->paginate($params['limit']);
+            $list  = $askArticle->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
             return phcentSuccess($data,'文章列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
@@ -142,7 +142,7 @@ class UserController
             }else{
                 $askAnswer = $askAnswer->orderBy('id','desc');
             }
-            $list  = $askAnswer->where('user_id',$id)->paginate($params['limit']);
+            $list  = $askAnswer->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
             return phcentSuccess($data,'回答列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
@@ -170,7 +170,7 @@ class UserController
                 throw new \Exception('数据异常');
             }
             if($params['type'] == 'user'){
-                $list  = $askFollower->where('user_id',$id)->where('to_user_id','>',0)->with('toUser')->paginate($params['limit']);
+                $list  = $askFollower->where('user_id',$id)->where('to_user_id','>',0)->with('toUser')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
                 $list->map(function ($item){
                     if($item->toUser == null){
                         AskCollection::destroy($item->id);
@@ -184,7 +184,7 @@ class UserController
                     $item->setHidden(['user']);
                 });
             }else{
-                $list  = $askFollower->where('user_id',$id)->where('question_id','>',0)->with('question')->paginate($params['limit']);
+                $list  = $askFollower->where('user_id',$id)->where('question_id','>',0)->with('question')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
                 $list->map(function ($item){
                     if($item->question == null){
                         AskCollection::destroy($item->id);
@@ -220,7 +220,7 @@ class UserController
             }
             $askFollower = new AskFollower();
             $params = phcentParams(['page' => 1,'limit' =>10]);
-            $list  = $askFollower->where('to_user_id',$id)->with('user')->paginate($params['limit']);
+            $list  = $askFollower->where('to_user_id',$id)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->user == null){
                     AskCollection::destroy($item->id);

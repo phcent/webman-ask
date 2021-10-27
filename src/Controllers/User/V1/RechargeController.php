@@ -17,12 +17,14 @@
 namespace Phcent\WebmanAsk\Controllers\User\V1;
 
 
+use support\Request;
+
 class RechargeController
 {
     /**
      * 获取签到日志
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             phcentMethod(['GET']);
@@ -33,7 +35,7 @@ class RechargeController
             } else {
                 $askReport = $askReport->orderBy('id', 'desc')->orderBy('id', 'desc');
             }
-            $list = $askReport->paginate($request->input('limit',10));
+            $list = $askReport->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
             return phcentSuccess( $data,'成功', ['page' => $list->currentPage(), 'total' => $list->total()]);
         } catch (\Exception $e) {

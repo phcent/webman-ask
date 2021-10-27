@@ -18,10 +18,12 @@ namespace Phcent\WebmanAsk\Model;
 
 //use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Phcent\WebmanAsk\Logic\PriceLogic;
 
 class AskArticle extends Model
 {
+    use SoftDeletes;
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
 

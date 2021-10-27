@@ -17,6 +17,7 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\SysBalanceLog;
 use Phcent\WebmanAsk\Model\SysUser;
 
@@ -165,6 +166,70 @@ class BalanceService
             }
         }
 
+    }
+
+    /**
+     * 'increase','decrease','freeze','unfreeze'
+     * 操作资金变化
+     * @param $operation
+     * @param $amount
+     * @param $userId
+     * @throws \Exception
+     */
+    public static function changeBalance($operation,$amount,$userId)
+    {
+        $adminId = AuthLogic::getInstance()->userId();
+        if(empty($adminId)){
+            throw new \Exception('数据异常');
+        }
+        $user = SysUser::where('id',$userId)->first();
+        if($user == null){
+            throw new \Exception('会员异常');
+        }
+        $available_balance = 0 ;
+        $freeze_balance = 0;
+        $operation_stage = '';
+        $description = '';
+        switch ($operation){
+            case 'increase':
+                $available_balance = $amount;
+                $operation_stage = 'increaseBalance';
+                $description = "管理员调整预存款，增加余额 {$amount}，操作者编号{$adminId}";
+                $user->increment('available_balance',$amount);//增加可用
+                break;
+            case 'decrease':
+                $operation_stage = 'decreaseBalance';
+                $available_balance = -$amount;
+                $description = "管理员调整预存款，减少余额 {$amount}，操作者编号{$adminId}";
+                $user->decrement('available_balance',$amount);//减少可用
+                break;
+            case 'freeze':
+                $operation_stage = 'freezeBalance';
+                $available_balance = -$amount;
+                $freeze_balance = $amount;
+                $description = "管理员调整预存款，冻结余额 {$amount}，操作者编号{$adminId}";
+                $user->increment('freeze_balance',$amount); //增加冻结
+                $user->decrement('available_balance',$amount);//减少可用
+                break;
+            case 'unfreeze':
+                $operation_stage = 'unfreezeBalance';
+                $available_balance = $amount;
+                $freeze_balance = -$amount;
+                $description = "管理员调整预存款，解冻余额 {$amount}，操作者编号{$adminId}";
+                $user->decrement('freeze_balance',$amount); //减少冻结
+                $user->increment('available_balance',$amount);//增加可用
+                break;
+        }
+        SysBalanceLog::create([
+            'user_id' => $user->id,
+            'user_name' => $user->nick_name,
+            'available_balance' => $available_balance,
+            'freeze_balance' => $freeze_balance,
+            'old_available_balance' => $user->available_balance,
+            'old_freeze_balance' => $user->freeze_balance,
+            'operation_stage' => $operation_stage,
+            'description' => $description
+        ]);
     }
 
 }

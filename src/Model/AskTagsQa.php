@@ -13,10 +13,7 @@
  *-------------------------------------------------------------------------t*
  */
 
-
 namespace Phcent\WebmanAsk\Model;
-
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
 class AskTagsQa extends Model
 {
@@ -87,12 +84,20 @@ class AskTagsQa extends Model
     protected $attributes = [
 
     ];
-
     /**
      * 不可批量赋值的属性
      *
      * @var array
      */
     protected $guarded = [];
+
+    public function question()
+    {
+        return $this->hasOne(AskQuestion::class,'id','question_id');
+    }
+    public function article()
+    {
+        return $this->hasOne(AskArticle::class,'id','article_id');
+    }
 
 }

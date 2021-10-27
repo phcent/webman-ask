@@ -17,6 +17,7 @@
 namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
 
+use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskArticle;
 use Phcent\WebmanAsk\Model\AskCategory;
@@ -45,12 +46,26 @@ class ArticleController
             $askArticle = new AskArticle();
             $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
             $askArticle = phcentWhereParams($askArticle,$params);
-            if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
-                $askArticle = $askArticle->orderBy(request()->input('sortName'),request()->input('sortOrder'));
-            }else{
-                $askArticle = $askArticle->orderBy('id','desc');
+//            if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
+//                $askArticle = $askArticle->orderBy(request()->input('sortName'),request()->input('sortOrder'));
+//            }else{
+//                $askArticle = $askArticle->orderBy('id','desc');
+//            }
+            $type = $request->input('type','new');
+            switch ($type){
+                case 'hot':
+                    $askArticle = $askArticle->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
+                    break;
+                case 'price':
+                    $askArticle = $askArticle->where(function ($query){
+                        return $query->where('reward_balance','>','0')->orWhere('reward_points','>','0');
+                    })->orderBy('id','desc');
+                    break;
+                default:
+                    $askArticle = $askArticle->where('status',1)->orderBy('id','desc');
+                    break;
             }
-            $list  = $askArticle->with(['user','tags'])->paginate($params['limit']);
+            $list  = $askArticle->with(['user','tags'])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->tags != null){
                     $item->tags->map(function ($item2){

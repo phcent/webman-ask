@@ -17,6 +17,8 @@
 namespace Phcent\WebmanAsk\Controllers\Admin\V0;
 
 
+use Phcent\WebmanAsk\Logic\AuthLogic;
+use Phcent\WebmanAsk\Logic\CodeLogic;
 use support\Request;
 
 class AjaxController
@@ -28,6 +30,28 @@ class AjaxController
             'id' => $request->id,
             'action' => $request->action
         ];
+        return phcentSuccess($data);
+    }
+
+    /**
+     * 获取后台菜单
+     * @param Request $request
+     * @return \support\Response
+     */
+    public function menu(Request $request)
+    {
+
+        try {
+
+        }catch (\Exception $e){
+            return  phcentError($e->getMessage());
+        }
+
+        $user = AuthLogic::getInstance()->user();
+
+        $data['site_id'] = \request()->siteId;
+        $data['code'] = (new \Phcent\WebmanAsk\Logic\CodeLogic)->encode('999');
+        $data['ascode'] = (new \Phcent\WebmanAsk\Logic\CodeLogic)->decode($data['code']);
         return phcentSuccess($data);
     }
 }

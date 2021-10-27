@@ -23,7 +23,7 @@ use support\Request;
 
 class SigninController extends AdminControllerLogic
 {
-    public  $model = \Phcent\WebmanAsk\Model\AskSingninLog::class;
+    public  $model = \Phcent\WebmanAsk\Model\AskSigninLog::class;
     public  $name = '签到日志';
     public  $projectName = '问答管理-签到日志管理-';
 

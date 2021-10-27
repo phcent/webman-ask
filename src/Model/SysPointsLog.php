@@ -104,5 +104,11 @@ class SysPointsLog extends Model
         'old_available_points' => PriceLogic::class,
         'old_freeze_points' => PriceLogic::class,
     ];
+    protected $appends =['operation_stage_text'];
+    public function getOperationStageTextAttribute($key)
+    {
+        $list = config('phcentask.pointsOperation');
+        return isset($list[$this->operation_stage])?$list[$this->operation_stage]:'未知';
+    }
 
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- * 问答标签数据模型
+ * 问答签到数据模型
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,9 +16,10 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Storage;
 
-class AskTags extends Model
+class AskSigninLog extends Model
 {
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
@@ -28,7 +29,7 @@ class AskTags extends Model
      *
      * @var string
      */
-    protected $table = 'ask_tags';
+    protected $table = 'ask_signin_log';
 
     /**
      * 与表关联的主键
@@ -85,12 +86,7 @@ class AskTags extends Model
      * @var array
      */
     protected $attributes = [
-        'question_num' => 0,
-        'article_num' => 0,
-        'follow_num' => 0,
-        'report_num' => 0,
-        'hot_sort' => 0,
-        'status' => 1,
+
     ];
 
     /**
@@ -100,14 +96,19 @@ class AskTags extends Model
      */
     protected $guarded = [];
 
-    public function question()
+    public function user()
     {
-        return $this->hasOne(AskQuestion::class,'id','question_id');
+        return $this->hasOne(SysUser::class,'id','user_id');
+    }
+    protected $appends= ['avatar_url','created_at_date'];
+
+    public function getAvatarUrlAttribute($key)
+    {
+     //   return $this->user_avatar ? (preg_match('/^http(s)?:\\/\\/.+/',$this->user_avatar)?$this->user_avatar:'' :'https://ui-avatars.com/api/?name='.urlencode($this->user_name).'&color=7F9CF5&background=EBF4FF';
     }
 
-    public function article()
+    public function getCreatedAtDateAttribute()
     {
-        return $this->hasOne(AskArticle::class,'id','article_id');
+        return Date::parse($this->created_at)->format('Y-m-d');
     }
-
 }

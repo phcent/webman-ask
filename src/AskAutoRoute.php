@@ -36,7 +36,7 @@ class AskAutoRoute
 
 
            AskRoute::group('/v0/admin',  function () {
-                AskRoute::resource('/ajax',Controllers\Admin\V0\AjaxController::class,['test'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
+                AskRoute::resource('/ajax',Controllers\Admin\V0\AjaxController::class,['test','menu'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
                 AskRoute::resource('/album',Controllers\Admin\V0\AlbumController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/cash',Controllers\Admin\V0\CashController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/log',Controllers\Admin\V0\LogController::class,['index','destroy'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
@@ -44,7 +44,7 @@ class AskAutoRoute
                 AskRoute::resource('/orders',Controllers\Admin\V0\OrdersController::class,['index','update'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/recharge',Controllers\Admin\V0\RechargeController::class,['index','update'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/team',Controllers\Admin\V0\TeamController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
-                AskRoute::resource('/user',Controllers\Admin\V0\UserController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
+                AskRoute::resource('/user',Controllers\Admin\V0\UserController::class,['index','update','create','destroy','recovery','money','points'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
             });
 
             AskRoute::group('/v1/admin', function () {
@@ -68,7 +68,7 @@ class AskAutoRoute
             //会员路由
             AskRoute::group('/{version}/user/{controller}', function () {
                 AskRoute::any('/{action}[/{id}]', function ($request, $version, $controller, $action, $id = null) {
-                    $class_name = 'Phcent\\WebmanAsk\\Controllers\\SysUser\\' . Ucfirst($version) . '\\' . Ucfirst($controller) . 'Controller';
+                    $class_name = 'Phcent\\WebmanAsk\\Controllers\\User\\' . Ucfirst($version) . '\\' . Ucfirst($controller) . 'Controller';
                     if (!method_exists($class_name, $action)) {
                         return phcentJson(config('phcentask.code.intel_no'), $version . "目录下的控制器: {$controller}里面的方法: {$action}不存在");
                     }
@@ -86,6 +86,7 @@ class AskAutoRoute
                     }
                     $controller = new $class_name;
                     $request->controller = $class_name;
+                    $request->page = $request->input('page',1);
                     return call_user_func([$controller, $action], $request, $id);
                 });
             });

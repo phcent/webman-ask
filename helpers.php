@@ -234,7 +234,9 @@ if(! function_exists('phcentAddRouter')){
     function phcentAddRouter($prefix,$controller,$actions){
         return Route::group($prefix,function () use ($controller, $actions) {
             foreach ($actions as $k) {
-                Route::any("/{$k}[/{id}]",[$controller,$k]);
+                Route::any("/{$k}[/{id}]",function ($request,$id = 0) use ($k, $controller) {
+                    return call_user_func([new $controller, $k], $request,$id);
+                });
             }
         });
     }

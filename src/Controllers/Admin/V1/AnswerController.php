@@ -84,10 +84,10 @@ class AnswerController extends AdminControllerLogic
     public function adminDestroy($user, $ids, $id)
     {
         //删除回答
-        $askComment = (new $this->model)->whereIn('id', $ids)->get();
+        $askComment = (new $this->model)->where('site_id',\request()->siteId)->whereIn('id', $ids)->get();
         (new $this->model)->destroy($askComment->pluck('id'));
         //删除评论
-        $askCommentReply = AskReply::whereIn('theme_id', $askComment->pluck('id'))->where('type', 1)->get();
+        $askCommentReply = AskReply::whereIn('theme_id', $askComment->pluck('id'))->where('site_id',\request()->siteId)->where('type', 1)->get();
         AskReply::destroy($askCommentReply->pluck('id'));
     }
 

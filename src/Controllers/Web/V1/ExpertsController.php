@@ -22,7 +22,7 @@ use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskUser;
 use Phcent\WebmanAsk\Service\CategoryService;
 use Phcent\WebmanAsk\Service\IndexService;
-use support\bootstrap\Redis;
+use support\Redis;
 use support\Request;
 
 class ExpertsController
@@ -37,18 +37,22 @@ class ExpertsController
         try {
             phcentMethod(['GET']);
             $userId = AuthLogic::getInstance()->userId();
-            $askCollection = new AskCollection();
-            $params = phcentParams(['page' => 1,'limit' =>10,'type']);
-            $askCollection = phcentWhereParams($askCollection,$params);
-            if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
-                $askCollection = $askCollection->orderBy(request()->input('sortName'),request()->input('sortOrder'));
-            }else{
-                $askCollection = $askCollection->orderBy('id','desc');
+            $experts = new AskUser();
+            $experts = phcentWhereParams($experts,$request->all());
+            $list = $experts->with('user')->whereHas('user')
+                ->where('is_expert',1)
+                ->orderBy('hot_sort','desc')
+                ->orderBy('answer_best_num','desc')
+                ->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            foreach ($list as $item){
+                $item->user_name = $item->user->nick_name;
+                $item->avatar_url = $item->user->avatar_url;
+                $item->is_online = phcentIsUserOnline($item->id);
+                $item->setHidden(['user']);
             }
-            $list  = $askCollection->where('user_id',$userId)->paginate($params['limit']);
             $data['list'] = $list->items();
             $data['categoryList'] = CategoryService::getCategoryList(4);
-            return phcentSuccess($data,'收藏列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'专家列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }

@@ -129,53 +129,60 @@ class QuestionService
         if(!$haveRole){
             throw new \Exception('无权限修改');
         }
-        if(isset($params['tags'])){
-            if(!is_array($params['tags'])){
-                throw new \Exception('话题数据异常');
-            }
-            $askTagsQa = AskTagsQa::where('question_id',$id)->get()->pluck('tag_id');
-            foreach ($params['tags'] as $v){
-                $tags = AskTags::where('name',$v)->first();
-                if($tags == null){
-                    //新增话题
-                    $newTag = AskTags::create([
-                        'name' => $v,
-                        'question_num' => 1
-                    ]);
-                    //建立关联
-                    AskTagsQa::create(['question_id' => $id,'tag_id'=>$newTag->id]);
-                }else{
-                    if($askTagsQa->contains($tags->id)){
-                        $askTagsQa->forget($tags->id);
-                    }else{
-                        //增加问题数量
-                        $tags->increment('question_num');
+        try {
+            Db::connection()->beginTransaction();
+            if(isset($params['tags'])){
+                if(!is_array($params['tags'])){
+                    throw new \Exception('话题数据异常');
+                }
+                $askTagsQa = AskTagsQa::where('question_id',$id)->get()->pluck('tag_id');
+                foreach ($params['tags'] as $v){
+                    $tags = AskTags::where('name',$v)->first();
+                    if($tags == null){
+                        //新增话题
+                        $newTag = AskTags::create([
+                            'name' => $v,
+                            'question_num' => 1
+                        ]);
                         //建立关联
-                        AskTagsQa::create(['question_id' => $id,'tag_id'=>$tags->id]);
+                        AskTagsQa::create(['question_id' => $id,'tag_id'=>$newTag->id]);
+                    }else{
+                        if($askTagsQa->contains($tags->id)){
+                            $askTagsQa->forget($tags->id);
+                        }else{
+                            //增加问题数量
+                            $tags->increment('question_num');
+                            //建立关联
+                            AskTagsQa::create(['question_id' => $id,'tag_id'=>$tags->id]);
+                        }
                     }
                 }
+                //剩余则为本次去除了的话题
+                if($askTagsQa->count() > 0){
+                    AskTagsQa::where('question_id',$id)->whereIn('tag_id',$askTagsQa)->delete();
+                    AskTags::whereIn('id',$askTagsQa)->decrement('question_num');
+                }
+                unset($params['tags']);
             }
-            //剩余则为本次去除了的话题
-            if($askTagsQa->count() > 0){
-                AskTagsQa::where('question_id',$id)->whereIn('tag_id',$askTagsQa)->delete();
-                AskTags::whereIn('id',$askTagsQa)->decrement('question_num');
+            foreach ($params as $k=>$v){
+                $info->$k = $v;
             }
-            unset($params['tags']);
-        }
-        foreach ($params as $k=>$v){
-            $info->$k = $v;
-        }
-        $info->save();
+            $info->save();
 
-        //增加会员动态
-        DynamicService::create([
-            'user_id' => $userId,
-            'type' => 1,
-            'item_id' => $info->id,
-            'operation_stage' => 'update',
-            'title' => $info->title,
-            'content' => ''
-        ]);
+            //增加会员动态
+            DynamicService::create([
+                'user_id' => $userId,
+                'type' => 1,
+                'item_id' => $info->id,
+                'operation_stage' => 'update',
+                'title' => $info->title,
+                'content' => ''
+            ]);
+            Db::connection()->commit();
+        }catch (\Exception $e){
+            Db::connection()->rollBack();
+            throw  new \Exception($e->getMessage());
+        }
     }
 
     /**

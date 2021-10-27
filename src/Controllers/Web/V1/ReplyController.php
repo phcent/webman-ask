@@ -50,7 +50,7 @@ class ReplyController
                     $askReply = $askReply->orderBy('id','desc');
                     break;
             }
-            $list  = $askReply->where('status',1)->where('type',2)->where('theme_id',$id)->paginate($params['limit']);
+            $list  = $askReply->where('status',1)->where('type',2)->where('theme_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
 
             });

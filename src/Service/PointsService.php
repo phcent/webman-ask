@@ -17,6 +17,7 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskUser;
 use Phcent\WebmanAsk\Model\SysPointsLog;
 use Phcent\WebmanAsk\Model\SysUser;
@@ -256,5 +257,61 @@ class PointsService
             }
         }
 
+    }
+
+    public static function changePoints($operation,$amount,$userId)
+    {
+        $adminId = AuthLogic::getInstance()->userId();
+        if(empty($adminId)){
+            throw new \Exception('数据异常');
+        }
+        $user = SysUser::where('id',$userId)->first();
+        if($user == null){
+            throw new \Exception('会员异常');
+        }
+        $available_balance = 0 ;
+        $freeze_balance = 0;
+        $operation_stage = '';
+        $description = '';
+        switch ($operation){
+            case 'increase':
+                $available_balance = $amount;
+                $operation_stage = 'increasePoints';
+                $description = "系统调整积分，增加积分{$amount}，操作者编号{$adminId}";
+                $user->increment('available_points',$amount);//增加可用
+                break;
+            case 'decrease':
+                $operation_stage = 'decreasePoints';
+                $available_balance = -$amount;
+                $description = "系统调整积分，减少积分 {$amount}，操作者编号{$adminId}";
+                $user->decrement('available_points',$amount);//减少可用
+                break;
+            case 'freeze':
+                $operation_stage = 'freezePoints';
+                $available_balance = -$amount;
+                $freeze_balance = $amount;
+                $description = "系统调整积分，冻结积分 {$amount}，操作者编号{$adminId}";
+                $user->increment('freeze_points',$amount); //增加冻结
+                $user->decrement('available_points',$amount);//减少可用
+                break;
+            case 'unfreeze':
+                $operation_stage = 'unfreezePoints';
+                $available_balance = $amount;
+                $freeze_balance = -$amount;
+                $description = "系统调整积分，解冻积分 {$amount}，操作者编号{$adminId}";
+                $user->decrement('freeze_points',$amount); //减少冻结
+                $user->increment('available_points',$amount);//增加可用
+                break;
+        }
+        SysPointsLog::create([
+            'user_id' => $user->id,
+            'user_name' => $user->nick_name,
+            'available_points' => $available_balance,
+            'freeze_points' => $freeze_balance,
+            'old_available_points' => $user->available_points,
+            'old_freeze_points' => $user->freeze_points,
+            'operation_stage' => $operation_stage,
+            'description' => $description
+        ]);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  *-------------------------------------------------------------------------p*
- *
+ * 全局中间件
  *-------------------------------------------------------------------------h*
  * @copyright  Copyright (c) 2015-2021 Phcent Inc. (http://www.phcent.com)
  *-------------------------------------------------------------------------c*
@@ -16,6 +16,8 @@
 
 namespace Phcent\WebmanAsk\Middleware;
 
+use Phcent\WebmanAsk\Logic\CodeLogic;
+use Phcent\WebmanAsk\Service\AdminService;
 use Webman\MiddlewareInterface;
 use Webman\Http\Response;
 use Webman\Http\Request;
@@ -25,12 +27,19 @@ class AccessControllerMiddleware implements MiddlewareInterface
 
     public function process(Request $request, callable $next): Response
     {
+        $host = $request->host(true);
+        $siteId = $request->header('SiteId');
         // 允许uri以 /api 开头的地址跨域访问
         if (strpos($request->path(), '/api') === 0) {
             // 如果是options请求，不处理业务
             if ($request->method() == 'OPTIONS') {
                 $response = response('');
             } else {
+                try {
+                    $request->siteId =  AdminService::checkSiteId($host,$siteId);
+                }catch (\Exception $e){
+                    return phcentError($e->getMessage());
+                }
                 $response = $next($request);
             }
             $response->withHeaders([
@@ -39,6 +48,11 @@ class AccessControllerMiddleware implements MiddlewareInterface
                 'Access-Control-Allow-Headers' => config('phcentask.cross.headers','Content-Type,Authorization,X-Requested-With,Accept,Origin'),
             ]);
         } else {
+            try {
+                $request->siteId =  AdminService::checkSiteId($host,$siteId);
+            }catch (\Exception $e){
+                return phcentError($e->getMessage());
+            }
             $response = $next($request);
         }
         return $response;

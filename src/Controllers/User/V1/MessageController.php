@@ -43,7 +43,7 @@ class MessageController
             }else{
                 $askMessage = $askMessage->orderBy('id','desc');
             }
-            $list  = $askMessage->where('to_user_id',$userId)->where('to_user_del','<>',1)->with('toUser')->paginate($params['limit']);
+            $list  = $askMessage->where('to_user_id',$userId)->where('to_user_del','<>',1)->with('toUser')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->toUser != null){
                     $item->to_user_name = $item->toUser->nick_name;

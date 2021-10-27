@@ -17,76 +17,84 @@
 namespace Phcent\WebmanAsk\Service;
 
 
+use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Model\AskArticle;
-use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskCategoryRole;
 use Phcent\WebmanAsk\Model\AskFollower;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskUser;
 use Phcent\WebmanAsk\Model\SysUser;
-use support\bootstrap\Redis;
+use support\Redis;
 
 class IndexService
 {
     /**
-     * 获取热门问题
+     * 获取热门问题 60分钟
      * @param int $limit
      * @return mixed
      */
     public static function getHotQuestion($limit = 10)
     {
-        $list = Redis::get('phcentAskHotQuestion'.$limit);
+        $siteId = request()->siteId;
+        $list = Redis::get("phcentAskHotQuestion{$siteId}");
         if($list == null){
-            $list = AskQuestion::orderBy('hot_sort','desc')->where('status',1)->orderBy('id','desc')->limit($limit)->get()->toJson();
-            Redis::set('phcentAskHotQuestion'.$limit,$list,300);
+            $list = AskQuestion::orderBy('hot_sort','desc')->orderBy('view_num','desc')->where('site_id',$siteId)->where('status',1)->orderBy('id','desc')->limit(20)->get()->toJson();
+            Redis::setEx("phcentAskHotQuestion{$siteId}",3600,$list);
         }
-        return json_decode($list);
+        $list = json_decode($list);
+        return collect($list)->take($limit)->all();
     }
 
     /**
-     * 获取热门问题
+     * 获取最新待解决问题 5分钟
      * @param int $limit
      * @return mixed
      */
     public static function getNewQuestion($limit = 10)
     {
-        $list = Redis::get('phcentAskNewQuestion'.$limit);
+        $siteId = request()->siteId;
+        $list = Redis::get("phcentAskNewQuestion{$siteId}");
         if($list == null){
-            $list = AskQuestion::orderBy('id','desc')->where('status',1)->limit($limit)->get()->toJson();
-            Redis::set('phcentAskNewQuestion'.$limit,$list,300);
+            $list = AskQuestion::orderBy('id','desc')->where('status',1)->limit(20)->get()->toJson();
+            Redis::setEx("phcentAskNewQuestion{$siteId}",300,$list);
         }
-        return json_decode($list);
+        $list = json_decode($list);
+        return collect($list)->take($limit)->all();
     }
 
     /**
-     * 获取热门文章
+     * 获取热门文章 60分钟
      * @param int $limit
      * @return mixed
      */
     public static function getHotArticle($limit = 10)
     {
-        $list = Redis::get('phcentAskHotArticle'.$limit);
+        $siteId = request()->siteId;
+        $list = Redis::get("phcentAskHotArticle{$siteId}");
         if($list == null){
-            $list = AskArticle::orderBy('hot_sort','desc')->orderBy('id','desc')->where('status',1)->limit($limit)->get()->toJson();
-            Redis::set('phcentAskHotArticle'.$limit,$list,300);
+            $list = AskArticle::orderBy('hot_sort','desc')->orderBy('id','desc')->where('status',1)->limit(20)->get()->toJson();
+            Redis::setEx("phcentAskHotArticle{$siteId}",3600,$list);
         }
-        return json_decode($list);
+        $list = json_decode($list);
+        return collect($list)->take($limit)->all();
     }
 
     /**
-     * 获取热门标签
+     * 获取热门标签 60分钟
      * @param int $limit
      * @return mixed
      */
     public static function getHotTags($limit = 50)
     {
-        $list = Redis::get('phcentAskHotTags'.$limit);
+        $siteId = request()->siteId;
+        $list = Redis::get("phcentAskHotTags{$siteId}");
         if($list == null){
-            $list = AskTags::orderBy('hot_sort','desc')->orderBy('id','desc')->where('status',1)->limit($limit)->get()->toJson();
-            Redis::set('phcentAskHotTags'.$limit,$list,300);
+            $list = AskTags::orderBy('hot_sort','desc')->orderBy('id','desc')->where('status',1)->limit(100)->get()->toJson();
+            Redis::setEx("phcentAskHotTags{$siteId}",3600,$list);
         }
-        return json_decode($list);
+        $list = json_decode($list);
+        return collect($list)->take($limit)->all();
     }
 
     /**
@@ -96,19 +104,37 @@ class IndexService
      */
     public static function getExpertOnline($limit = 5)
     {
-        $list = AskUser::with('user')->whereHas('user')->where('is_expert',1)->limit(5)->orderBy('hot_sort','desc')->orderBy('answer_best_num','desc')->get();
-        $data = collect([]);
-        foreach ($list as $item){
-            $data->push([
-                'user_id'=>$item->id,
-                'user_name' => $item->user->nick_name,
-                'avatar_url' => $item->user->avatar_url,
-                'is_online' => phcentIsUserOnline($item->id),
-                'answer_num' => $item->answer_num,
-                'answer_best_num' => $item->answer_best_num,
-            ]);
+        $siteId = request()->siteId;
+        $list = Redis::get("phcentAskExpert{$siteId}");
+        if($list == null){
+            $list = AskUser::with('user')->whereHas('user')->where('is_expert',1)->limit(20)->orderBy('hot_sort','desc')->orderBy('answer_best_num','desc')->get();
+            $data = collect([]);
+            foreach ($list as $item){
+                $data->push([
+                    'user_id'=>$item->id,
+                    'user_name' => $item->user->nick_name,
+                    'avatar_url' => $item->user->avatar_url,
+                    'is_online' => phcentIsUserOnline($item->id),
+                    'answer_num' => $item->answer_num,
+                    'answer_best_num' => $item->answer_best_num,
+                ]);
+            }
+            Redis::setEx("phcentAskExpert{$siteId}",3600,$data->toJson());
+        }else{
+            $data = collect([]);
+            $list =json_decode($list);
+            foreach ($list as $val){
+                $data->push([
+                    'user_id' => $val->user_id,
+                    'user_name' =>  $val->user_name,
+                    'avatar_url' =>  $val->avatar_url,
+                    'is_online' => phcentIsUserOnline( $val->user_id),
+                    'answer_num' =>  $val->answer_num,
+                    'answer_best_num' =>  $val->answer_best_num,
+                ]);
+            }
         }
-        return $data;
+        return $data->take($limit);
     }
 
     /**
@@ -162,7 +188,7 @@ class IndexService
         $askUser = AskUser::firstOrCreate(['id'=>$id]);
         $data['user_name'] = $user->nick_name;
         $data['user_id'] = $user->id;
-        $data['created_at'] = $user->created_at;
+        $data['created_at'] = Date::parse($user->created_at)->toDateString();
         $data['avatar_url'] = $user->avatar_url;
         $data['user_points'] = $user->points;
         $data['login_num'] = $user->login_num;

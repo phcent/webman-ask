@@ -69,7 +69,7 @@ class AnswerController
                     $askAnswer = $askAnswer->orderBy('id','asc')->orderBy('digg_num','desc');
                     break;
             }
-            $list  = $askAnswer->where('question_id',$id)->with('user')->paginate($params['limit']);
+            $list  = $askAnswer->where('question_id',$id)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 $item->is_collection = 0;
                 $item->is_digg = 0;
@@ -123,7 +123,7 @@ class AnswerController
                     $askReply = $askReply->orderBy('id','desc');
                     break;
             }
-            $list  = $askReply->where('status',1)->where('type',1)->where('theme_id',$id)->with('user')->paginate($params['limit']);
+            $list  = $askReply->where('status',1)->where('type',1)->where('theme_id',$id)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->user != null){
                     $item->user_name = $item->user->nick_name;
