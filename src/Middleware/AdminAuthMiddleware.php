@@ -46,9 +46,9 @@ class AdminAuthMiddleware implements MiddlewareInterface
                 }else{
                     return phcentJson(config('phcentask.code.intel_authority'),'无权限访问');
                 }
+            }else{
+                return phcentJson(config('phcentask.code.intel_no_login'),'令牌已失效');
             }
-        }else{
-            return phcentJson(config('phcentask.code.intel_no_login'),'登入已过期');
         }
         return phcentError('请先登入');
     }

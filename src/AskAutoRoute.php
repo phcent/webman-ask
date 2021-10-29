@@ -36,7 +36,7 @@ class AskAutoRoute
 
 
            AskRoute::group('/v0/admin',  function () {
-                AskRoute::resource('/ajax',Controllers\Admin\V0\AjaxController::class,['test','menu'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
+                AskRoute::resource('/ajax',Controllers\Admin\V0\AjaxController::class,['cache','menu'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
                 AskRoute::resource('/album',Controllers\Admin\V0\AlbumController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/cash',Controllers\Admin\V0\CashController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/log',Controllers\Admin\V0\LogController::class,['index','destroy'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);

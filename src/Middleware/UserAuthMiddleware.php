@@ -17,7 +17,9 @@
 namespace Phcent\WebmanAsk\Middleware;
 
 
+use Illuminate\Support\Str;
 use Phcent\WebmanAsk\Logic\AuthLogic;
+use Phcent\WebmanAsk\Service\AdminService;
 use Webman\Http\Request;
 use Webman\Http\Response;
 use Webman\MiddlewareInterface;
@@ -27,6 +29,15 @@ class UserAuthMiddleware  implements MiddlewareInterface
 
     public function process(Request $request, callable $next): Response
     {
+        $header = $request->header('Authorization', '');
+        if (Str::startsWith($header, 'Bearer ')) {
+            $userId = AuthLogic::getInstance()->userId();
+            if(!empty($userId)){
+                return $next($request);
+            }else{
+                return phcentJson(config('phcentask.code.intel_no_login'),'令牌已失效');
+            }
+        }
         $userId = AuthLogic::getInstance()->userId();
         if(!empty($userId)){
             return $next($request);

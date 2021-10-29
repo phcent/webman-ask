@@ -44,7 +44,7 @@ class ArticleController
         try {
             phcentMethod(['GET']);
             $askArticle = new AskArticle();
-            $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
+            $params = phcentParams(['cate_id']);
             $askArticle = phcentWhereParams($askArticle,$params);
 //            if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
 //                $askArticle = $askArticle->orderBy(request()->input('sortName'),request()->input('sortOrder'));
@@ -54,7 +54,7 @@ class ArticleController
             $type = $request->input('type','new');
             switch ($type){
                 case 'hot':
-                    $askArticle = $askArticle->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
+                    $askArticle = $askArticle->orderBy('hot_sort','desc')->orderBy('view_num','desc')->orderBy('id','desc');
                     break;
                 case 'price':
                     $askArticle = $askArticle->where(function ($query){
@@ -81,12 +81,6 @@ class ArticleController
             });
             $data['list'] = $list->items();
             $data['categoryList'] = CategoryService::getCategoryList(2);
-            $data['hotQuestion'] = IndexService::getHotQuestion();
-            $data['hotArticle'] = IndexService::getHotArticle();
-            $data['hotTags'] = IndexService::getHotTags();
-            $data['hotExpert'] = IndexService::getExpertOnline();
-            $data['newQuestion'] = IndexService::getNewQuestion();
-
             return phcentSuccess($data,'文章列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
@@ -150,12 +144,6 @@ class ArticleController
                 }
             }
             $data['userCard'] = IndexService::getUserCard($info->user_id,$userId);
-
-            $data['hotQuestion'] = IndexService::getHotQuestion();
-            $data['hotArticle'] = IndexService::getHotArticle();
-            $data['hotTags'] = IndexService::getHotTags();
-            $data['hotExpert'] = IndexService::getExpertOnline();
-            $data['newQuestion'] = IndexService::getNewQuestion();
 
             $data['reasonList'] = config('phcentask.reasonList');
             $data['addPoints'] =  config('phcentask.addPoints');
@@ -329,7 +317,7 @@ class ArticleController
                     throw new \Exception('问题不存在');
                 }
                 //判断是否有修改权限
-                $haveRole = IndexService::isHaveAdminRole($info,$userId);
+                $haveRole = IndexService::isHaveAdminRole($userId,$info->cate_id);
                 if(!$haveRole){
                     throw new \Exception('无权限修改');
                 }

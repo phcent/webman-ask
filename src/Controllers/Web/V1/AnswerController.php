@@ -23,6 +23,7 @@ use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskReply;
 use Phcent\WebmanAsk\Service\AnswerService;
+use Phcent\WebmanAsk\Service\IndexService;
 use Respect\Validation\Validator;
 use support\Db;
 use support\Request;
@@ -42,6 +43,7 @@ class AnswerController
             if(!is_numeric($id) && empty($id)){
                 throw new \Exception('编号不正确');
             }
+            $userId = AuthLogic::getInstance()->userId();
             $askAnswer = new AskAnswer();
             $bestAnswer = AskAnswer::where('question_id',$id)->with('user')->whereNotNull('reward_time')->first();
 
@@ -70,12 +72,14 @@ class AnswerController
                     break;
             }
             $list  = $askAnswer->where('question_id',$id)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
-            $list->map(function ($item){
+            $adminRole = IndexService::isHaveAdminRole($userId,0);
+            $list->map(function ($item) use ($userId,$adminRole){
                 $item->is_collection = 0;
                 $item->is_digg = 0;
                 $item->is_step = 0;
                 $item->show_edit = 0;
                 $item->show_delete = 0;
+                $item->show_reward = 0;
                 if($item->user != null){
                     $item->user_name = $item->user->nick_name;
                     $item->user_avatar = $item->user->avatar_url;
@@ -85,6 +89,18 @@ class AnswerController
                     $item->user_avatar = '';
                     $item->user_description = '';
                 }
+                if(!empty($userId)){
+                    if($item->user_id == $userId){
+                        $item->show_edit = 1;
+                    }
+                    if($adminRole){
+                        $item->show_edit = 1;
+                        $item->show_delete = 1;
+                        $item->show_reward = 1;
+                    }
+                }
+
+
                 $item->setHidden(['user']);
             });
             $data['best_answer'] = $bestAnswer;

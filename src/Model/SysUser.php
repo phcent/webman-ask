@@ -54,6 +54,6 @@ class SysUser extends Model
 
     public function getAvatarUrlAttribute($key)
     {
-        return $this->avatar ? phcentFileUrl($this->avatar) :'https://ui-avatars.com/api/?name='.urlencode($this->nick_name).'&color=7F9CF5&background=EBF4FF';
+        return $this->avatar ? phcentFileUrl($this->avatar) :'https://ui-avatars.com/api/?name='.urlencode($this->nick_name).'&length=1&background=random';
     }
 }

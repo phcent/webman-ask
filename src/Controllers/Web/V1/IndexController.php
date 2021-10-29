@@ -80,9 +80,7 @@ class IndexController
             $data['type'] = $type;
             $data['list'] = $list->items();
             $data['categoryList'] = CategoryService::getCategoryList(1);
-            $data['hotQuestion'] = IndexService::getHotQuestion();
-            $data['hotArticle'] = IndexService::getHotArticle();
-            $data['hotTags'] = IndexService::getHotTags();
+            $data['hotExpert'] = IndexService::getExpertOnline(10);
             return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());

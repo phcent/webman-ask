@@ -90,11 +90,6 @@ class QuestionController
             $data['type'] = $type;
             $data['list'] = $list->items();
             $data['categoryList'] = CategoryService::getCategoryList(1);
-            $data['hotQuestion'] = IndexService::getHotQuestion();
-            $data['hotArticle'] = IndexService::getHotArticle();
-            $data['hotTags'] = IndexService::getHotTags();
-            $data['hotExpert'] = IndexService::getExpertOnline();
-            $data['newQuestion'] = IndexService::getNewQuestion();
 
             return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
@@ -174,12 +169,6 @@ class QuestionController
                 }
             }
             $data['userCard'] = IndexService::getUserCard($info->user_id,$userId);
-
-            $data['hotQuestion'] = IndexService::getHotQuestion();
-            $data['hotArticle'] = IndexService::getHotArticle();
-            $data['hotTags'] = IndexService::getHotTags();
-            $data['hotExpert'] = IndexService::getExpertOnline();
-            $data['newQuestion'] = IndexService::getNewQuestion();
 
             $data['reasonList'] = config('phcentask.reasonList');
             $data['addPoints'] =  config('phcentask.addPoints');
@@ -408,7 +397,7 @@ class QuestionController
                     throw new \Exception('问题不存在');
                 }
                 //判断是否有修改权限
-                $haveRole = IndexService::isHaveAdminRole($info,$userId);
+                $haveRole = IndexService::isHaveAdminRole($userId,$info->cate_id);
                 if(!$haveRole){
                     throw new \Exception('无权限修改');
                 }

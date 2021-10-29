@@ -44,15 +44,16 @@ class AjaxController
     public function tags(Request $request)
     {
         try {
+            $siteId = request()->siteId;
             $askTags = new AskTags();
-            $params = phcentParams(['page' => 1,'limit' =>10,'name_like','cate_id']);
+            $params = phcentParams(['name_like','cate_id']);
             $askTags = phcentWhereParams($askTags,$params);
             if ($request->input('sortName') && in_array($request->input('sortOrder'), array('asc', 'desc'))) {
                 $askTags = $askTags->orderBy($request->input('sortName'),$request->input('sortOrder'));
             }else{
                 $askTags = $askTags->orderBy('id','desc');
             }
-            $list  = $askTags->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list  = $askTags->where('site_id',$siteId)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
 
             $data['list'] = $list->items();
             return phcentSuccess($data,'话题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
@@ -228,6 +229,26 @@ class AjaxController
         try {
             phcentMethod(['GET']);
            $data = SigninService::getIndexSigninRank();
+            return phcentSuccess($data);
+        }catch (\Exception $e){
+            return phcentError($e->getMessage());
+        }
+    }
+
+    /**
+     * 获取右侧内容
+     * @param Request $request
+     * @return \support\Response
+     */
+    public function bar(Request $request)
+    {
+        try {
+            phcentMethod(['GET']);
+            $data['hotQuestion'] = IndexService::getHotQuestion();
+            $data['hotArticle'] = IndexService::getHotArticle();
+            $data['hotTags'] = IndexService::getHotTags();
+            $data['hotExpert'] = IndexService::getExpertOnline();
+            $data['newQuestion'] = IndexService::getNewQuestion();
             return phcentSuccess($data);
         }catch (\Exception $e){
             return phcentError($e->getMessage());

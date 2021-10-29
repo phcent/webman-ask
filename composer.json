@@ -13,7 +13,9 @@
     "workerman/validation": "^3.0",
     "symfony/translation": "^5.3",
     "guzzlehttp/guzzle": "^7.3",
-    "symfony/mailer": "^5.3"
+    "symfony/mailer": "^5.3",
+    "symfony/cache": "^5.2",
+    "vlucas/phpdotenv": ">=4.1,<6.0"
   },
   "license": "AGPL-3.0-only",
   "autoload": {

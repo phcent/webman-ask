@@ -44,21 +44,25 @@ class AdminService
 
     /**
      * 获取管理员缓存
+     * @param $teamId
+     * @return bool
+     * @throws \Exception
      */
     public static function getAdminRoleMenu($teamId)
     {
         $teamMenu = self::getAdminTeamMenuCache();
         $menu = self::getAdminMenuCache();
         $control = request()->controller;
+        $menuIds = collect($teamMenu)->where('team_id',$teamId)->pluck('menu_id');
         //判断控制器是否存在
-        $haveMenu = collect($menu)->whereIn('id',collect($teamMenu)->pluck('menu_id'))->where('controller',$control)->first();
-        var_dump($haveMenu,$control);
+        $haveMenu = collect($menu)->whereIn('id',$menuIds)->where('controller',$control)->first();
         if($haveMenu != null){
             //查询
-            $teamMenuItem = collect($teamMenu)->where('menu_id',$haveMenu['id'])->first();
+            $teamMenuItem = collect($teamMenu)->where('menu_id',$haveMenu->id)->first();
             if($teamMenuItem != null){
-                $perms = implode(",", $teamMenuItem['perm']);
-                if (in_array(request()->method(), (array) $perms)) {
+                $perms = explode(',', $teamMenuItem->perm);
+                $method = request()->method();
+                if (in_array($method, (array) $perms)) {
                     return true;
                 }
             }
