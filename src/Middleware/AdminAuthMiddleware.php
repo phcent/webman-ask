@@ -35,7 +35,6 @@ class AdminAuthMiddleware implements MiddlewareInterface
      */
     public function process(Request $request, callable $next) : Response
     {
-
         $header = $request->header('Authorization', '');
         if (Str::startsWith($header, 'Bearer ')) {
             $userData = AuthLogic::getInstance()->getUserData();

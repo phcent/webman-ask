@@ -49,7 +49,7 @@ class AskAutoRoute
             });
 
             AskRoute::group('/ask/admin', function () {
-                AskRoute::resource('/ajax',Controllers\Admin\Ask\AjaxController::class,['cache','menu','card'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
+                AskRoute::resource('/ajax',Controllers\Admin\Ask\AjaxController::class,['cache','card'])->middleware(\Phcent\WebmanAsk\Middleware\UserAuthMiddleware::class);
                 AskRoute::resource('/answer',Controllers\Admin\Ask\AnswerController::class,['index','update','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/article',Controllers\Admin\Ask\ArticleController::class,['index','update','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);
                 AskRoute::resource('/category',Controllers\Admin\Ask\CategoryController::class,['index','update','create','destroy','recovery'])->middleware(\Phcent\WebmanAsk\Middleware\AdminAuthMiddleware::class);

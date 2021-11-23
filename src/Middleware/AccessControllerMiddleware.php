@@ -45,7 +45,7 @@ class AccessControllerMiddleware implements MiddlewareInterface
             $response->withHeaders([
                 'Access-Control-Allow-Origin' => config('phcentask.cross.origin','*'),
                 'Access-Control-Allow-Methods' => config('phcentask.cross.methods','GET,POST,PUT,DELETE,OPTIONS'),
-                'Access-Control-Allow-Headers' => config('phcentask.cross.headers','Content-Type,Authorization,X-Requested-With,Accept,Origin'),
+                'Access-Control-Allow-Headers' => config('phcentask.cross.headers','SiteId,Content-Type,Authorization,X-Requested-With,Accept,Origin'),
             ]);
 
         } else {

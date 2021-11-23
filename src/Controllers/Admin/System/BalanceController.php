@@ -17,7 +17,9 @@
 namespace Phcent\WebmanAsk\Controllers\Admin\System;
 
 
-class BalanceController
+use Phcent\WebmanAsk\Logic\AdminControllerLogic;
+
+class BalanceController extends AdminControllerLogic
 {
     public  $model = \Phcent\WebmanAsk\Model\SysBalanceLog::class;
     public  $name = '余额日志';
