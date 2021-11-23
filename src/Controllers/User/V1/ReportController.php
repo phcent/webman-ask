@@ -41,7 +41,7 @@ class ReportController
             }
             $list = $askReport->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
-            return phcentSuccess( $data,'成功', ['page' => $list->currentPage(), 'total' => $list->total()]);
+            return phcentSuccess( $data,'成功', ['page' => $list->currentPage(), 'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         } catch (\Exception $e) {
             return phcentError( $e->getMessage());
         }

@@ -18,6 +18,7 @@ namespace Phcent\WebmanAsk\Model;
 
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Storage;
+use Laravolt\Avatar\Avatar;
 
 class AskSigninLog extends Model
 {
@@ -104,7 +105,7 @@ class AskSigninLog extends Model
 
     public function getAvatarUrlAttribute($key)
     {
-        return $this->user_avatar ? phcentFileUrl($this->user_avatar) :'https://ui-avatars.com/api/?name='.urlencode($this->user_name).'&length=1&background=random';
+        return $this->user_avatar ? phcentFileUrl($this->user_avatar) :(new Avatar(config('phcentask.avatar')))->create($this->user_name)->toBase64();
     }
 
     public function getCreatedAtDateAttribute()

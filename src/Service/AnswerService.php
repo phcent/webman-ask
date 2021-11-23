@@ -61,6 +61,67 @@ class AnswerService
     }
 
     /**
+     * 补充回答
+     * @param $id
+     * @param $params
+     * @param $userId
+     * @throws \Exception
+     */
+    public static function updateAnswer($id,$params,$userId)
+    {
+        $answer = AskAnswer::where('id',$id)->with('question')->has('question')->first();
+        if($answer == null || $answer->status != 1){
+            throw new \Exception('数据异常或状态不允许修改');
+        }
+        $admin = IndexService::isHaveAdminRole($userId,$answer->question->cate_id);
+        if(!$admin){
+            if(!in_array($answer->question->status,[2,3])){
+                throw new \Exception('该问题状态不允许回答');
+            }
+            if($answer->reward_time != null){
+                throw new \Exception('悬赏答案不允许修改');
+            }
+            if($answer->user_id != $userId){
+                throw new \Exception('不允许修改非自己的评论');
+            }
+        }
+        $time = \date('Y-m-d H:i:s');
+        $params['content'] = $answer->content."\n > 补充内容时间于{$time} \n\n {$params['content']}";
+        foreach ($params  as $key=>$value){
+            $answer->$key = $value;
+        }
+        $answer->save();
+        return $answer;
+    }
+
+    /**
+     * 删除答案
+     * @param $id
+     * @param $userId
+     * @throws \Exception
+     */
+    public static function destroyAnswer($id,$userId)
+    {
+        $answer = AskAnswer::where('id',$id)->with('question')->has('question')->first();
+        if($answer == null){
+            throw new \Exception('数据异常');
+        }
+        $admin = IndexService::isHaveAdminRole($userId,$answer->question->cate_id);
+        if(!$admin){
+            if($answer->reward_time != null){
+                throw new \Exception('悬赏答案不允许删除');
+            }
+            if($answer->user_id != $userId){
+                throw new \Exception('不允许删除非自己的回答');
+            }
+        }
+        //删除回答
+        $answer->delete();
+        //删除回答下的评论
+        AskReply::where('type',3)->where('theme_id',$id)->delete();
+    }
+
+    /**
      * 新增评论
      * @param $params
      * @param $userId
@@ -70,7 +131,7 @@ class AnswerService
     {
        switch ($params['type']){
            //回答
-           case 1:
+           case 3:
                $answer = AskAnswer::where('id',$params['theme_id'])->with('question')->whereHas('question')->first();
                if($answer == null){
                    throw new \Exception('参数错误');
@@ -131,6 +192,50 @@ class AnswerService
     }
 
     /**
+     * 更新评论
+     * @param $id
+     * @param $params
+     * @param $userId
+     * @throws \Exception
+     */
+    public static function updateReply($id,$params,$userId)
+    {
+        $reply = AskReply::where('id',$id)->first();
+        if($reply == null){
+            throw new \Exception('数据异常');
+        }
+        $admin = IndexService::isHaveRole($reply,$userId,false);
+        if(!$admin){
+            throw new \Exception('无权限操作');
+        }
+        $time = \date('Y-m-d H:i:s');
+        $params['content'] = $reply->content."\n > 补充内容时间于{$time} \n\n {$params['content']}";
+        foreach ($params  as $key=>$value){
+            $reply->$key = $value;
+        }
+        $reply->save();
+    }
+    /**
+     * 删除评论
+     * @param $id
+     * @param $userId
+     * @throws \Exception
+     */
+    public static function destroyReply($id,$userId)
+    {
+        $reply = AskReply::where('id',$id)->first();
+        if($reply == null){
+            throw new \Exception('数据异常');
+        }
+        $admin = IndexService::isHaveRole($reply,$userId,false);
+        if(!$admin){
+            throw new \Exception('无权限操作');
+        }
+        //删除评论
+        $reply->delete();
+    }
+
+    /**
      * 采纳答案
      * @param $params
      * @param $userId
@@ -180,5 +285,54 @@ class AnswerService
         if($question->reward_points > 0){
             PointsService::bestAnswer($question,$answer->user_id);
         }
+    }
+
+    /**
+     * 整理回答列表数据
+     * @param $item
+     * @param $userId
+     * @param $adminRole
+     * @param $question
+     * @return mixed
+     */
+    public static function calcItem($item,$userId,$adminRole,$question)
+    {
+        $item->is_collection = $item->collection->count() > 0 ?1:0;
+        $item->is_digg = (isset($item->digg) && $item->digg != null && $item->digg->where('conduct','up')->first() != null ) ? 1 : 0;
+        $item->is_step = (isset($item->digg) && $item->digg != null && $item->digg->where('conduct','down')->first() != null ) ? 1 : 0;
+        $item->show_edit = 0;
+        $item->show_delete = 0;
+        $item->show_reward = 0;
+        $content = $item->content;
+        if($question->is_private === 1){
+            $content = '此回答仅提问者可以查看';
+        }
+        if($item->reward_balance > 0 || $item->reward_points > 0){
+            $content = "需要支付<b>{$item->reward_balance}</b>元及<b>{$item->reward_points}</b>积分才可阅读";
+        }
+
+        if($item->user != null){
+            $item->user_name = $item->user->nick_name;
+            $item->user_avatar = $item->user->avatar_url;
+            $item->user_description = $item->user->description;
+        }else{
+            $item->user_name = '会员不存在';
+            $item->user_avatar = '';
+            $item->user_description = '';
+        }
+        if(!empty($userId)){
+            if($item->user_id == $userId){
+                $item->show_edit = 1;
+                $content = $item->content;
+            }
+            if($adminRole){
+                $item->show_edit = 1;
+                $item->show_delete = 1;
+                $item->show_reward = 1;
+                $content = $item->content;
+            }
+        }
+        $item->content = $content;
+        return $item;
     }
 }

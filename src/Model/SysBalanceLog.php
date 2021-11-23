@@ -105,4 +105,11 @@ class SysBalanceLog extends Model
         'old_freeze_balance' => PriceLogic::class,
     ];
 
+    protected $appends =['operation_stage_text'];
+
+    public function getOperationStageTextAttribute($key)
+    {
+        $list = config('phcentask.balanceOperation');
+        return isset($list[$this->operation_stage])?$list[$this->operation_stage]:'未知';
+    }
 }

@@ -16,6 +16,8 @@
 
 namespace Phcent\WebmanAsk\Model;
 
+use Phcent\WebmanAsk\Logic\PriceLogic;
+
 class SysOrders extends Model
 {
 
@@ -84,7 +86,10 @@ class SysOrders extends Model
      * @var array
      */
     protected $attributes = [
-
+        'balance' => 0,
+        'amount' => 0,
+        'status' => 0,
+        'theme_id' => 0
     ];
 
     /**
@@ -93,4 +98,9 @@ class SysOrders extends Model
      * @var array
      */
     protected $guarded = [];
+
+    protected $casts = [
+        'balance' => PriceLogic::class,
+        'amount' => PriceLogic::class
+    ];
 }

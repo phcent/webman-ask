@@ -99,5 +99,9 @@ class AskReply extends Model
     {
         return $this->hasOne(SysUser::class,'id','user_id');
     }
+    public function digg()
+    {
+        return $this->hasMany(AskDigg::class,'theme_id','id')->where('type',4);
+    }
 
 }

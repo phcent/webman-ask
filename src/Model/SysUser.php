@@ -15,6 +15,8 @@
 namespace Phcent\WebmanAsk\Model;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravolt\Avatar\Avatar;
+use Phcent\WebmanAsk\Logic\PriceLogic;
 
 class SysUser extends Model
 {
@@ -50,10 +52,19 @@ class SysUser extends Model
         'password',
     ];
 
+    protected $casts = [
+        'available_balance' => PriceLogic::class,
+        'freeze_balance' => PriceLogic::class,
+        'available_points' => PriceLogic::class,
+        'freeze_points' => PriceLogic::class,
+        'points' => PriceLogic::class,
+
+    ];
+
     protected $appends= ['avatar_url'];
 
     public function getAvatarUrlAttribute($key)
     {
-        return $this->avatar ? phcentFileUrl($this->avatar) :'https://ui-avatars.com/api/?name='.urlencode($this->nick_name).'&length=1&background=random';
+        return $this->avatar ? phcentFileUrl($this->avatar) :(new Avatar(config('phcentask.avatar')))->create($this->nick_name)->toBase64();
     }
 }

@@ -9,7 +9,7 @@
  *-------------------------------------------------------------------------e*
  * @link       http://www.phcent.com
  *-------------------------------------------------------------------------n*
- * @since      象讯·PHP商城系统Pro
+ * @since      象讯·PHP知识付费问答系统
  *-------------------------------------------------------------------------t*
  */
 
@@ -18,9 +18,11 @@ namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
 
 use Illuminate\Support\Facades\Date;
+use Phcent\WebmanAsk\Model\AskArticle;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Service\CategoryService;
 use Phcent\WebmanAsk\Service\IndexService;
+use support\Db;
 use support\Request;
 
 class IndexController
@@ -34,36 +36,40 @@ class IndexController
     {
         try {
             phcentMethod(['GET']);
-            $askQuestion = new AskQuestion();
-            $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
-            $askQuestion = phcentWhereParams($askQuestion,$params);
-            $type = $request->input('type','new');
-            switch ($type){
-                case 'hot':
-                    $askQuestion = $askQuestion->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
-                    break;
-                case 'price':
-                    $askQuestion = $askQuestion->where(function ($query){
-                        return $query->where('reward_balance','>','0')->orWhere('reward_points','>','0');
-                    })->orderBy('id','desc');
-                    break;
-                case 'unsolved':
-                    $askQuestion = $askQuestion->where('status',1)->orderBy('id','desc');
-                    break;
-                case 'unanswer':
-                    $askQuestion = $askQuestion->where('answer_num',0)->where('status','<>',0)->orderBy('id','desc');
-                    break;
-                case 'solved':
-                    $askQuestion = $askQuestion->where('status',2)->orderBy('id','desc');
-                    break;
-                case 'unsettled':
-                    $askQuestion = $askQuestion->where('reward_time','<',Date::now()->subDays(config('phcentask.rewardTime',7)))->where('status',1)->orderBy('id','desc');
-                    break;
-                default:
-                    $askQuestion = $askQuestion->where('status','<>',0)->orderBy('id','desc');
-                    break;
-            }
-            $list  = $askQuestion->with(['tags','user'])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $topQuestion = AskQuestion::where('status','<>',0)->where('top_sort','>',0)->with(['tags','user'])->select(['id','title','answer_num','view_num','user_id','top_sort','hot_sort','style','reward_balance','reward_points','created_at',Db::connection()->raw('any_value(1) as type')]);
+            $topArticle = AskArticle::where('status','<>',0)->where('top_sort','>',0)->with(['tags','user'])->select(['id','title','reply_num as answer_num','view_num','user_id','top_sort','hot_sort','style','reward_balance','reward_points','created_at',Db::connection()->raw('any_value(2) as type')]);
+            $topList = $topArticle->union($topQuestion)->orderBy('top_sort','desc')->get();
+            $topList->map(function ($item){
+                if($item->tags != null){
+                    $item->tags->map(function ($item2){
+                        $item2->setVisible(['id','name']);
+                    });
+                }
+                if($item->user == null){
+                    $item->user_name = '异常';
+                }else{
+                    $item->user_name = $item->user->nick_name;
+                }
+                $item->setHidden(['user']);
+            });
+            $data['top_list'] = $topList;
+            $question = AskQuestion::where('status','<>',0)->where(function ($query) use ($request) {
+                if($request->input('type') == 'hot'){
+                    $query->where('hot_sort' ,'>', 0);
+                }
+                if($request->input('type') == 'unreply'){
+                    $query->where('answer_num', 0);
+                }
+            })->with(['tags','user'])->select(['id','title','answer_num','view_num','user_id','top_sort','hot_sort','style','reward_balance','reward_points','created_at',Db::connection()->raw('any_value(1) as type')]);
+            $article = AskArticle::where('status','<>',0)->where(function ($query) use ($request) {
+                if($request->input('type') == 'hot'){
+                    $query->where('hot_sort','>', 0);
+                }
+                if($request->input('type') == 'unreply'){
+                    $query->where('reply_num', 0);
+                }
+            })->with(['tags','user'])->select(['id','title','reply_num as answer_num','view_num','user_id','top_sort','hot_sort','style','reward_balance','reward_points','created_at',Db::connection()->raw('any_value(2) as type')]);
+            $list  = $article->union($question)->orderBy('created_at','desc')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->tags != null){
                     $item->tags->map(function ($item2){
@@ -77,11 +83,9 @@ class IndexController
                 }
                 $item->setHidden(['user']);
             });
-            $data['type'] = $type;
             $data['list'] = $list->items();
-            $data['categoryList'] = CategoryService::getCategoryList(1);
             $data['hotExpert'] = IndexService::getExpertOnline(10);
-            return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'问题文章列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }

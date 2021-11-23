@@ -119,11 +119,20 @@ class AskArticle extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(AskTags::class,'ask_tags_qa','article_id','tag_id');
+        return $this->belongsToMany(AskTags::class,'ask_tags_qa','theme_id','tag_id')->wherePivot('type',2);
     }
 
     public function user()
     {
         return $this->hasOne(SysUser::class,'id','user_id');
+    }
+
+    public function collection()
+    {
+        return $this->hasMany(AskCollection::class,'theme_id','id')->where('type',2);
+    }
+    public function digg()
+    {
+        return $this->hasMany(AskDigg::class,'theme_id','id')->where('type',2);
     }
 }

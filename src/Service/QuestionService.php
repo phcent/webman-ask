@@ -18,6 +18,7 @@ namespace Phcent\WebmanAsk\Service;
 
 
 use Illuminate\Support\Facades\Date;
+use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskCategory;
 use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Model\AskReply;
@@ -53,18 +54,22 @@ class QuestionService
         if($category == null){
             throw new \Exception('分类不存在');
         }
-        $question = AskQuestion::create([
+        $data = [
             'title' => $params['title'],
             'content' => $params['content'],
             'user_id' => $user->id,
             'cate_id' => $params['cate_id'],
             'reward_balance' => $params['reward_balance'],
             'reward_points' => $params['reward_points'],
-            'reward_time' => Date::now(),
-            'keyword' => $params['keyword'],
-            'description' => $params['description'],
+            'seo_title' => $params['seo_title'],
+            'seo_keyword' => $params['seo_keyword'],
+            'seo_description' => $params['seo_description'],
             'is_private' => $params['is_private'],
-        ]);
+        ];
+        if($data['reward_balance'] > 0 || $data['reward_points'] > 0){
+            $data['reward_time'] = Date::now();
+        }
+        $question = AskQuestion::create($data);
         if(isset($params['tags'])){
             if(!is_array($params['tags'])){
                 throw new \Exception('话题数据异常');
@@ -78,12 +83,12 @@ class QuestionService
                         'question_num' => 1
                     ]);
                     //建立关联
-                    AskTagsQa::create(['question_id' => $question->id,'tag_id'=>$newTag->id]);
+                    AskTagsQa::create(['theme_id' => $question->id,'type'=>1,'tag_id'=>$newTag->id]);
                 }else{
                     //增加问题数量
                     $tags->increment('question_num');
                     //建立关联
-                    AskTagsQa::create(['question_id' => $question->id,'tag_id'=>$tags->id]);
+                    AskTagsQa::create(['theme_id' => $question->id,'type'=>1,'tag_id'=>$tags->id]);
                 }
             }
         }
@@ -135,7 +140,7 @@ class QuestionService
                 if(!is_array($params['tags'])){
                     throw new \Exception('话题数据异常');
                 }
-                $askTagsQa = AskTagsQa::where('question_id',$id)->get()->pluck('tag_id');
+                $askTagsQa = AskTagsQa::where('theme_id',$id)->where('type',1)->get()->pluck('tag_id');
                 foreach ($params['tags'] as $v){
                     $tags = AskTags::where('name',$v)->first();
                     if($tags == null){
@@ -145,7 +150,7 @@ class QuestionService
                             'question_num' => 1
                         ]);
                         //建立关联
-                        AskTagsQa::create(['question_id' => $id,'tag_id'=>$newTag->id]);
+                        AskTagsQa::create(['theme_id' => $id,'type'=>1,'tag_id'=>$newTag->id]);
                     }else{
                         if($askTagsQa->contains($tags->id)){
                             $askTagsQa->forget($tags->id);
@@ -153,13 +158,13 @@ class QuestionService
                             //增加问题数量
                             $tags->increment('question_num');
                             //建立关联
-                            AskTagsQa::create(['question_id' => $id,'tag_id'=>$tags->id]);
+                            AskTagsQa::create(['theme_id' => $id,'type'=>1,'tag_id'=>$tags->id]);
                         }
                     }
                 }
                 //剩余则为本次去除了的话题
                 if($askTagsQa->count() > 0){
-                    AskTagsQa::where('question_id',$id)->whereIn('tag_id',$askTagsQa)->delete();
+                    AskTagsQa::where('theme_id',$id)->where('type',1)->whereIn('tag_id',$askTagsQa)->delete();
                     AskTags::whereIn('id',$askTagsQa)->decrement('question_num');
                 }
                 unset($params['tags']);
@@ -198,7 +203,7 @@ class QuestionService
             throw new \Exception('问题不存在');
         }
         //判断是否有修改权限
-        $haveRole = IndexService::isHaveAdminRole($userId,$info->cate_id);
+        $haveRole = IndexService::isHaveRole($userId,$info->cate_id);
         if(!$haveRole){
             throw new \Exception('无权限删除');
         }
@@ -229,7 +234,20 @@ class QuestionService
         if(!$haveRole){
             throw new \Exception('无权限关闭');
         }
-        $info->status = 3;
+        $info->closed_at = Date::now();
+
+
+        //退回悬赏金额
+        if($info->reward_time != null && Date::now()->lte(Date::parse($info->reward_time)->subDays(config('phcentask.rewardTime')))){
+            if($info->reward_balance > 0){
+                BalanceService::backReward($info);
+                $info->reward_balance = 0;
+            }
+            if($info->reward_points > 0){
+                PointsService::backReward($info);
+                $info->reward_points = 0;
+            }
+        }
         $info->save();
     }
 
@@ -250,8 +268,52 @@ class QuestionService
         if(!$haveRole){
             throw new \Exception('无权限打开');
         }
-        $info->status = 1;
+        $info->closed_at = null;
         $info->save();
+    }
+
+    /**
+     * 追加悬赏
+     * @param $id
+     * @param $params
+     * @throws \Throwable
+     */
+    public static function rewardQuestion($id,$params)
+    {
+        try {
+            $question = AskQuestion::where('id',$id)->first();
+            if($question == null){
+                throw new \Exception('问题不存在');
+            }
+            Db::connection()->beginTransaction();
+            $user =  AuthLogic::getInstance()->lockUser();
+            if($user == null){
+                throw new \Exception('会员不存在');
+            }
+            if($question->reward_time != null && Date::parse($question->reward_time)->addDays(config('phcentask.rewardTime',7))->lt(Date::now())){
+                throw new \Exception('悬赏时间已过期，不能追加悬赏');
+            }
+            if($params['type'] == 1){ //金额
+                if($user->available_balance < $params['amount']){
+                    throw new \Exception('可用金额不足，请先充值');
+                }
+                BalanceService::appendReward($params['amount'],$id,$user);
+                $question->increment('reward_balance',bcmul($params['amount'],100,0));
+                $question->reward_time = Date::now();
+            }else{ //积分
+                if($user->available_points < $params['amount']){
+                    throw new \Exception('可用积分不足');
+                }
+                PointsService::appendReward($params['amount'],$id,$user);
+                $question->increment('reward_points',bcmul($params['amount'],100,0));
+                $question->reward_time = Date::now();
+            }
+            $question->save();
+            Db::connection()->commit();
+        }catch (\Exception $e){
+            Db::connection()->rollBack();
+            throw new \Exception($e->getMessage());
+        }
     }
 
 

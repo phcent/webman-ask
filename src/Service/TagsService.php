@@ -9,7 +9,7 @@
  *-------------------------------------------------------------------------e*
  * @link       http://www.phcent.com
  *-------------------------------------------------------------------------n*
- * @since      象讯·PHP商城系统Pro
+ * @since      象讯·PHP知识付费问答系统
  *-------------------------------------------------------------------------t*
  */
 
@@ -30,8 +30,7 @@ class TagsService
     public static function updateTags($params,$id,$userId)
     {
         try {
-            $siteId = request()->siteId;
-            $info = AskTags::where('id',$id)->where('site_id',$siteId)->first();
+            $info = AskTags::where('id',$id)->first();
             if($info == null){
                 throw new \Exception('问题不存在');
             }

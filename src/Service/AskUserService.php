@@ -141,10 +141,10 @@ class AskUserService
         $data['article_num'] = $askUser->article_num;
         $data['fans_num'] = $askUser->fans_num;
         $data['description'] = $user->description;
-        $data['is_expert'] = $askUser->is_expert;
+        $data['expert_status'] = $askUser->expert_status;
         $data['is_follow'] = 0;
         if($uid  > 0){ //判断是否关注
-            $follow = AskFollower::where('user_id',$userId)->where('to_user_id',$userId)->first();
+            $follow = AskFollower::where('user_id',$uid)->where('theme_id',$userId)->where('type',7)->first();
             if($follow != null){
                 $data['is_follow'] = 1;
             }

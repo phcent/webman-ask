@@ -16,6 +16,7 @@
 
 namespace Phcent\WebmanAsk\Controllers\Web\V1;
 
+use Illuminate\Support\Facades\Date;
 use Phcent\WebmanAsk\Logic\AuthLogic;
 use Phcent\WebmanAsk\Model\AskAnswer;
 use Phcent\WebmanAsk\Model\AskArticle;
@@ -23,7 +24,10 @@ use Phcent\WebmanAsk\Model\AskCollection;
 use Phcent\WebmanAsk\Model\AskDynamic;
 use Phcent\WebmanAsk\Model\AskFollower;
 use Phcent\WebmanAsk\Model\AskQuestion;
+use Phcent\WebmanAsk\Service\AnswerService;
 use Phcent\WebmanAsk\Service\AskUserService;
+use Phcent\WebmanAsk\Service\FollowerService;
+use Phcent\WebmanAsk\Service\IndexService;
 use support\Request;
 
 class UserController
@@ -51,10 +55,10 @@ class UserController
             }
             $list  = $askDynamic->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $data['list'] = $list->items();
-            $data['dynamicType'] = config('phcentask.dynamicType');
+            $data['dynamicType'] = config('phcentask.allType');
             $data['dynamicStage'] = config('phcentask.dynamicStage');
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'动态列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'动态列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -75,17 +79,49 @@ class UserController
                 throw new \Exception('编号不正确');
             }
             $askQuestion = new AskQuestion();
-            $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
-            $askQuestion = phcentWhereParams($askQuestion,$params);
-            if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
-                $askQuestion = $askQuestion->orderBy(request()->input('sortName'),request()->input('sortOrder'));
-            }else{
-                $askQuestion = $askQuestion->orderBy('id','desc');
+            $type = $request->input('type','new');
+            switch ($type){
+                case 'hot':
+                    $askQuestion = $askQuestion->where('status','<>',0)->where('hot_sort','>',0)->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
+                    break;
+                case 'price':
+                    $askQuestion = $askQuestion->where(function ($query){
+                        return $query->where('reward_balance','>','0')->orWhere('reward_points','>','0');
+                    })->where('status','<>',0)->orderBy('id','desc');
+                    break;
+                case 'unsolved':
+                    $askQuestion = $askQuestion->where('status',1)->orderBy('id','desc');
+                    break;
+                case 'unanswer':
+                    $askQuestion = $askQuestion->where('answer_num',0)->where('status','<>',0)->orderBy('id','desc');
+                    break;
+                case 'solved':
+                    $askQuestion = $askQuestion->where('status',2)->orderBy('id','desc');
+                    break;
+                case 'unsettled':
+                    $askQuestion = $askQuestion->where('reward_time','<',Date::now()->subDays(config('phcentask.rewardTime',7)))->where('status','<>',2)->orderBy('id','desc');
+                    break;
+                default:
+                    $askQuestion = $askQuestion->where('status','<>',0)->orderBy('id','desc');
+                    break;
             }
-            $list  = $askQuestion->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list  = $askQuestion->where('user_id',$id)->with(['tags','user'])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list->map(function ($item){
+                if($item->tags != null){
+                    $item->tags->map(function ($item2){
+                        $item2->setVisible(['id','name']);
+                    });
+                }
+                if($item->user == null){
+                    $item->user_name = '异常';
+                }else{
+                    $item->user_name = $item->user->nick_name;
+                }
+                $item->setHidden(['user']);
+            });
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'问题列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -112,10 +148,26 @@ class UserController
             }else{
                 $askArticle = $askArticle->orderBy('id','desc');
             }
-            $list  = $askArticle->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $userId = AuthLogic::getInstance()->userId();
+            $list  = $askArticle->where('user_id',$id)->with(['tags',
+                'collection' => function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                }])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list->map(function ($item) use ($userId, $id) {
+                if($item->tags != null){
+                    $item->tags->map(function ($item2){
+                        $item2->setVisible(['id','name']);
+                    });
+                }
+                $item->is_collection = 0; //是否收藏
+                $item->show_edit = $id == $userId ? 1: 0;
+                $item->show_delete = $id == $userId ? 1: 0;
+                $item->is_collection =  $item->collection->count() > 0 ? 1 : 0; //是否收藏
+                $item->setHidden(['collection']);
+            });
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'文章列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'文章列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -134,18 +186,29 @@ class UserController
             if(!is_numeric($id) && empty($id)){
                 throw new \Exception('编号不正确');
             }
+            $userId = AuthLogic::getInstance()->userId();
+            $adminRole = IndexService::isHaveAdminRole($userId,0);
             $askAnswer = new AskAnswer();
-            $params = phcentParams(['page' => 1,'limit' =>10,'cate_id']);
+            $params = phcentParams(['cate_id']);
             $askAnswer = phcentWhereParams($askAnswer,$params);
             if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
                 $askAnswer = $askAnswer->orderBy(request()->input('sortName'),request()->input('sortOrder'));
             }else{
                 $askAnswer = $askAnswer->orderBy('id','desc');
             }
-            $list  = $askAnswer->where('user_id',$id)->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list  = $askAnswer->where('user_id',$id)->with(['user','question',
+                'collection'=>function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                }
+            ])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list->map(function ($item) use ($adminRole, $userId) {
+                $item->question_title = $item->question == null ?'':$item->question->title;
+                $item = AnswerService::calcItem($item,$userId,$adminRole,$item->question);
+                $item->setHidden(['user','question','collection']);
+            });
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'回答列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'回答列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -170,10 +233,11 @@ class UserController
                 throw new \Exception('数据异常');
             }
             if($params['type'] == 'user'){
-                $list  = $askFollower->where('user_id',$id)->where('to_user_id','>',0)->with('toUser')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
-                $list->map(function ($item){
+                $list  = $askFollower->where('user_id',$id)->where('type',7)->with('toUser')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+                $list->map(function ($item) use ($id) {
                     if($item->toUser == null){
-                        AskCollection::destroy($item->id);
+                        FollowerService::deleteFollower($id,$item->theme_id,'user');
+                        AskFollower::destroy($item->id);
                         $item->user_name = '';
                         $item->avatar_url = '';
                     }else{
@@ -181,16 +245,20 @@ class UserController
                         $item->avatar_url = $item->toUser->avatar_url;
                     }
 
-                    $item->setHidden(['user']);
+                    $item->setHidden(['toUser']);
                 });
             }else{
-                $list  = $askFollower->where('user_id',$id)->where('question_id','>',0)->with('question')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
-                $list->map(function ($item){
+                $userId =AuthLogic::getInstance()->userId();
+                $list  = $askFollower->where('user_id',$id)->where('type',1)->with(['question.follow'=>function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                }])->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+                $list->map(function ($item) use ($id) {
                     if($item->question == null){
-                        AskCollection::destroy($item->id);
+                        FollowerService::deleteFollower($id,$item->theme_id,'question');
                         $item->title = '';
                     }else{
                         $item->title = $item->question->title;
+                        $item->is_follow = $item->question->follow->count() > 0 ?1:0;
                     }
 
                     $item->setHidden(['question']);
@@ -199,7 +267,7 @@ class UserController
 
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'关注列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'关注列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
@@ -219,11 +287,10 @@ class UserController
                 throw new \Exception('编号不正确');
             }
             $askFollower = new AskFollower();
-            $params = phcentParams(['page' => 1,'limit' =>10]);
-            $list  = $askFollower->where('to_user_id',$id)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
+            $list  = $askFollower->where('theme_id',$id)->where('type',7)->with('user')->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
             $list->map(function ($item){
                 if($item->user == null){
-                    AskCollection::destroy($item->id);
+                    AskFollower::destroy($item->id);
                     $item->user_name = '';
                     $item->avatar_url = '';
                 }else{
@@ -234,7 +301,7 @@ class UserController
             });
             $data['list'] = $list->items();
             $data['userInfo'] = AskUserService::getUInfo($id);
-            return phcentSuccess($data,'粉丝列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'粉丝列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }

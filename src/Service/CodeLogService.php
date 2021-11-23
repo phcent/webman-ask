@@ -30,12 +30,14 @@ class CodeLogService
 {
     const REGISTER = 1, //注册
         LOGIN = 2, //登入
-        FIND_PASSWORD = 3; //找回密码
+        FIND_PASSWORD = 3,//找回密码
+        BIND = 4; //绑定
 
     /**
      * 发送验证码
      * @param $smsCode
      * @param int $userId
+     * @return
      * @throws \Overtrue\EasySms\Exceptions\InvalidArgumentException
      */
     public static function sendSms($smsCode,$userId = 0)

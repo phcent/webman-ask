@@ -70,12 +70,12 @@ class ArticleService
                         'article_num' => 1
                     ]);
                     //建立关联
-                    AskTagsQa::create(['article_id' => $article->id,'tag_id'=>$newTag->id]);
+                    AskTagsQa::create(['theme_id' => $article->id,'type'=>2,'tag_id'=>$newTag->id]);
                 }else{
                     //增加问题数量
                     $tags->increment('article_num');
                     //建立关联
-                    AskTagsQa::create(['article_id' => $article->id,'tag_id'=>$tags->id]);
+                    AskTagsQa::create(['theme_id' => $article->id,'type'=>2,'tag_id'=>$tags->id]);
                 }
             }
         }
@@ -119,7 +119,7 @@ class ArticleService
             if(!is_array($params['tags'])){
                 throw new \Exception('话题数据异常');
             }
-            $askTagsQa = AskTagsQa::where('article_id',$id)->get()->pluck('tag_id');
+            $askTagsQa = AskTagsQa::where('theme_id',$id)->where('type',2)->get()->pluck('tag_id');
             foreach ($params['tags'] as $v){
                 $tags = AskTags::where('name',$v)->first();
                 if($tags == null){
@@ -129,22 +129,25 @@ class ArticleService
                         'article_num' => 1
                     ]);
                     //建立关联
-                    AskTagsQa::create(['article_id' => $id,'tag_id'=>$newTag->id]);
+                    AskTagsQa::create(['theme_id' => $id,'type'=>2,'tag_id'=>$newTag->id]);
                 }else{
                     if($askTagsQa->contains($tags->id)){
-                        $askTagsQa->forget($tags->id);
+                        $askTagsQa->filter(function($value, $key) use ($tags) {
+                            return $value === $tags->id;
+                        });
+
                     }else{
                         //增加问题数量
                         $tags->increment('article_num');
                         //建立关联
-                        AskTagsQa::create(['article_id' => $id,'tag_id'=>$tags->id]);
+                        AskTagsQa::create(['theme_id' => $id,'type'=>2,'tag_id'=>$tags->id]);
                     }
                 }
             }
             //剩余则为本次去除了的话题
             if($askTagsQa->count() > 0){
-                AskTagsQa::where('article_id',$id)->whereIn('tag_id',$askTagsQa)->delete();
-                AskTags::whereIn('id',$askTagsQa)->decrement('article_num');
+                AskTagsQa::where('theme_id',$id)->where('type',2)->whereIn('tag_id',$askTagsQa->all())->delete();
+                AskTags::whereIn('id',$askTagsQa->all())->decrement('article_num');
             }
             unset($params['tags']);
         }

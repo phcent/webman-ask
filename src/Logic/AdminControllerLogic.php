@@ -56,7 +56,7 @@ class AdminControllerLogic
             $list = $model->paginate($request->input('limit',$this->limit ?? config('phcentask.pageLimit')),'*','page',$request->input('page',1));
 
             $data = $this->afterAdminIndex($list);
-            return phcentSuccess( $data,$this->name.'列表', ['page' => $list->currentPage(), 'total' => $list->total()]);
+            return phcentSuccess( $data,$this->name.'列表', ['page' => $list->currentPage(), 'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         } catch (\Exception $e) {
             return phcentError( $e->getMessage());
         }
@@ -200,7 +200,7 @@ class AdminControllerLogic
      * @return mixed
      */
      function beforeAdminIndex($model){
-        return $model = $model->where('site_id',\request()->siteId);
+        return $model;
     }
 
     /**
@@ -239,7 +239,6 @@ class AdminControllerLogic
     function adminCreate($user,$params){
         try {
             Db::connection()->beginTransaction();
-            $params['site_id'] = \request()->siteId;
             $create =(new $this->model)->create($params);
             $id = $this->key;
             UserService::addLog($this->projectName.'新增'.$this->name."(编号：{$create->$id})",get_class($this).'@create',$user->id,$user->nick_name,$params);
@@ -273,7 +272,7 @@ class AdminControllerLogic
      * @throws \Exception
      */
     function getAdminUpdate($id){
-        $info =(new $this->model)->where('site_id',\request()->siteId)->where($this->key, $id)->first();
+        $info =(new $this->model)->where($this->key, $id)->first();
         if ($info == null) {
             throw new \Exception('数据不存在');
         }
@@ -360,7 +359,7 @@ class AdminControllerLogic
      * @throws \Exception
      */
     function getAdminShow($id){
-        $info =(new $this->model)->where('site_id',\request()->siteId)->where($this->key, $id)->first();
+        $info =(new $this->model)->where($this->key, $id)->first();
         if ($info == null) {
             throw new \Exception('数据不存在');
         }
@@ -376,7 +375,7 @@ class AdminControllerLogic
      * @return array
      */
     function adminDestroy($user,$ids,$id){
-        $info = (new $this->model)->where('site_id',\request()->siteId)->whereIn($this->key,$ids)->get();
+        $info = (new $this->model)->whereIn($this->key,$ids)->get();
         (new $this->model)->destroy($info->pluck($this->key));
         return [];
     }

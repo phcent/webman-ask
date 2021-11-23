@@ -16,9 +16,11 @@
 
 namespace Phcent\WebmanAsk\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class SysAlbumFiles extends Model
 {
-
+    use SoftDeletes;
     // const CREATED_AT = 'created_at';
     // const UPDATED_AT = 'updated_at';
 
@@ -98,6 +100,6 @@ class SysAlbumFiles extends Model
 
     public function getFilesUrlAttribute()
     {
-       // return $this->name ? (preg_match('/^http(s)?:\\/\\/.+/',$this->name)?$this->name:'' :'';
+        return $this->name ? (preg_match('/^http(s)?:\\/\\/.+/',$this->name)?$this->name:phcentFileUrl(config("filesystem.storage.{$this->disk}.url").$this->name)):'';
     }
 }

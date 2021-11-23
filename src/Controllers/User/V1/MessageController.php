@@ -36,8 +36,6 @@ class MessageController
             phcentMethod(['GET']);
             $userId = AuthLogic::getInstance()->userId();
             $askMessage = new AskMessage();
-            $params = phcentParams(['page' => 1,'limit' =>10]);
-            $askMessage = phcentWhereParams($askMessage,$params);
             if (request()->input('sortName') && in_array(request()->input('sortOrder'), array('asc', 'desc'))) {
                 $askMessage = $askMessage->orderBy(request()->input('sortName'),request()->input('sortOrder'));
             }else{
@@ -54,7 +52,7 @@ class MessageController
                 $item->setHidden(['toUser']);
             });
             $data['list'] = $list->items();
-            return phcentSuccess($data,'私信列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'私信列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }

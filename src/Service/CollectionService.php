@@ -33,6 +33,10 @@ class CollectionService
      */
     public static function createCollection($userId,$themeId,$type)
     {
+        $collection = AskCollection::where('user_id',$userId)->where('theme_id',$themeId)->where('type',$type)->first();
+        if($collection != null){
+            throw new \Exception('你已经收藏了，请勿重复收藏');
+        }
         switch ($type){
             case 1: //问题
                 $question = AskQuestion::where('id',$themeId)->first();
@@ -128,7 +132,7 @@ class CollectionService
 
         $collection = AskCollection::where('user_id',$userId)->where('theme_id',$themeId)->where('type',$type)->first();
         if($collection == null){
-            throw new \Exception('收藏数据异常');
+            throw new \Exception('你已经取消收藏了,请勿重复点击');
         }
         $collection->delete();
 

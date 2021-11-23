@@ -99,12 +99,12 @@ class AskMessage extends Model
 
     public function user()
     {
-        return $this->hasOne(AskUser::class,'id','user_id');
+        return $this->hasOne(SysUser::class,'id','user_id');
     }
 
     public function toUser()
     {
-        return $this->hasOne(AskUser::class,'id','to_user_id');
+        return $this->hasOne(SysUser::class,'id','to_user_id');
     }
 
 }

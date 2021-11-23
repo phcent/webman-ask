@@ -53,7 +53,7 @@ class NoticeController
                 $item->setHidden(['fromUser']);
             });
             $data['list'] = $list->items();
-            return phcentSuccess($data,'私信列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            return phcentSuccess($data,'私信列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }

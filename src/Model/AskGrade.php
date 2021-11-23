@@ -17,6 +17,8 @@ namespace Phcent\WebmanAsk\Model;
 //use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
 
 
+use Phcent\WebmanAsk\Logic\PriceLogic;
+
 class AskGrade extends Model
 {
     // const CREATED_AT = 'created_at';
@@ -84,7 +86,7 @@ class AskGrade extends Model
      * @var array
      */
     protected $attributes = [
-
+        'points' => 0
     ];
 
     /**
@@ -93,6 +95,13 @@ class AskGrade extends Model
      * @var array
      */
     protected $guarded = [];
-
+    protected $casts = [
+        'points' => PriceLogic::class
+    ];
+    protected $appends =['image_url'];
+    public function getImageUrlAttribute()
+    {
+        return $this->image_name ? phcentFileUrl($this->image_name):'';
+    }
 
 }

@@ -31,15 +31,6 @@ class AuthLogic
         }
         return self::$instance;
     }
-    
-    private function __construct()
-    {
-
-    }
-
-    private function __clone(){
-
-    }
     /**
      * 会员自动登入
      * @param array $data
@@ -151,6 +142,10 @@ class AuthLogic
     public function getUserData(){
         try {
             $header = request()->header('Authorization', '');
+            $token = request()->input('_token');
+            if(Str::startsWith($token, 'Bearer ')){
+                $token = Str::substr($token, 7);
+            }
             if (Str::startsWith($header, 'Bearer ')) {
                 $token = Str::substr($header, 7);
             }

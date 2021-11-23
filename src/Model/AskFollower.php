@@ -16,9 +16,6 @@
 
 namespace Phcent\WebmanAsk\Model;
 
-//use Illuminate\Database\Eloquent\Model; //不开启缓存则去掉注释
-
-
 class AskFollower extends Model
 {
     // const CREATED_AT = 'created_at';
@@ -98,12 +95,12 @@ class AskFollower extends Model
 
     public function toUser()
     {
-        return $this->hasOne(SysUser::class,'id','to_user_id');
+        return $this->hasOne(SysUser::class,'id','theme_id');
     }
 
     public function question()
     {
-        return $this->hasOne(AskQuestion::class,'id','question_id');
+        return $this->hasOne(AskQuestion::class,'id','theme_id');
     }
 
     public function user()

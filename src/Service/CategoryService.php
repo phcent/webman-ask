@@ -28,11 +28,10 @@ class CategoryService
      */
     public static function getCategoryList($type)
     {
-        $siteId = request()->siteId;
-        $category = Redis::get("phcentAskCategory{$siteId}");
+        $category = Redis::get("phcentAskCategory");
         if($category == null){
-            $category = AskCategory::where('site_id',$siteId)->get()->toJson();
-            Redis::set("phcentAskCategory{$siteId}",$category);
+            $category = AskCategory::get()->toJson();
+            Redis::set("phcentAskCategory",$category);
         }
         $category = json_decode($category);
         return collect($category)->where('type',$type)->where('status',1)->values()->all();
@@ -40,11 +39,9 @@ class CategoryService
 
     /**
      * 清除缓存
-     * @param $siteId
      */
     public static function delCache()
     {
-        $siteId = request()->siteId;
-        Redis::del(["phcentAskCategory{$siteId}"]);
+        Redis::del(["phcentAskCategory"]);
     }
 }

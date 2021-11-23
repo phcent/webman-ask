@@ -9,7 +9,7 @@
  *-------------------------------------------------------------------------e*
  * @link       http://www.phcent.com
  *-------------------------------------------------------------------------n*
- * @since      象讯·PHP商城系统Pro
+ * @since      象讯·PHP知识付费问答系统
  *-------------------------------------------------------------------------t*
  */
 
@@ -27,16 +27,15 @@ class ConfigService
      */
     public static function getList()
     {
-        $siteId = request()->siteId;
-        $list = Redis::get("phcentAskConfig{$siteId}");
+        $list = Redis::get("phcentAskConfig");
         if($list == null){
             $list = collect();
-            $listSetting = SysConfig::where('site_id',$siteId)->get();
+            $listSetting = SysConfig::get();
             foreach ($listSetting as $key => $setting) {
                 $list->put($setting->key,$setting->value);
             }
             $list = $list->toJson();
-            Redis::set("phcentAskConfig{$siteId}",$list);
+            Redis::set("phcentAskConfig",$list);
         }
         return json_decode($list);
     }
@@ -64,6 +63,21 @@ class ConfigService
         $listSetting = [];
         foreach ($keys as $key) {
             $listSetting[$key] = self::getByKey($key);
+        }
+        return $listSetting;
+    }
+
+    /**
+     * 获得键值对
+     * @param array $keys
+     * @param array $list
+     * @return array
+     */
+    public static function getKeyName($keys = [],$list = [])
+    {
+        $listSetting = [];
+        foreach ($keys as $key) {
+            $listSetting[$key] = $list[$key] ?? '';
         }
         return $listSetting;
     }

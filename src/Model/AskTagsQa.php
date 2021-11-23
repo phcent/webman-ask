@@ -93,11 +93,11 @@ class AskTagsQa extends Model
 
     public function question()
     {
-        return $this->hasOne(AskQuestion::class,'id','question_id');
+        return $this->hasOne(AskQuestion::class,'id','theme_id');
     }
     public function article()
     {
-        return $this->hasOne(AskArticle::class,'id','article_id');
+        return $this->hasOne(AskArticle::class,'id','theme_id');
     }
 
 }

@@ -108,4 +108,9 @@ class AskThanks extends Model
         return $this->hasOne(SysUser::class,'id','to_user_id');
     }
 
+    public function order()
+    {
+        return $this->hasOne(SysOrders::class,'id','order_id');
+    }
+
 }

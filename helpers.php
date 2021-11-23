@@ -13,7 +13,9 @@
  *-------------------------------------------------------------------------t*
  */
 
+use Phcent\WebmanFilesystem\FilesystemFactory;
 use Webman\Route;
+use support\Redis;
 
 if (! function_exists('phcentWhereParams')) {
     /**
@@ -226,7 +228,8 @@ if (! function_exists('phcentIsEmailText')) {
 }
 if(! function_exists('phcentIsUserOnline')){
     function phcentIsUserOnline($uid){
-        return 1;
+       $has = Redis::get("user-is-online-{$uid}");
+        return $has ? 1:0;
     }
 }
 
@@ -244,8 +247,43 @@ if(! function_exists('phcentAddRouter')){
 
 if(! function_exists('phcentFileUrl')){
     function phcentFileUrl($url){
-        return preg_match('/^http(s)?:\\/\\/.+/',$url) ? $url: config('phcentask.fileUrl','http://www.phcent.com');
+        return preg_match('/^http(s)?:\\/\\/.+/',$url) ? $url: config('filesystem.storage.local.url','https://www.phcent.com/') . $url;
     }
 }
-
+if(!function_exists('phcentUploadFile')){
+    function phcentUploadFile($file, $path = 'common',$key='', $disk = 'local'){
+        $filePath = $file->getRealPath();
+        $ext = $file->getUploadExtension();
+        if(!empty($key)){
+            $realPath = 'uploads/'.$path . '/' . $key . '.' . $ext;
+        }else{
+            $realPath = 'uploads/'.$path . '/' . substr(md5($filePath), 0, 5) . date('YmdHis') . rand(0, 9999) . '.' . $ext;
+        }
+        $filesystem = FilesystemFactory::get($disk);
+        $stream = fopen( $filePath, 'r+');
+        $filesystem->writeStream(
+            $realPath,
+            $stream
+        );
+        fclose($stream);
+        $url = phcentFileUrl(config("filesystem.storage.{$disk}.url").$realPath);
+        $info = [
+            'files_name' => $realPath,
+            'files_size' => $file->getSize(),
+            'original_name' => $file->getUploadName(),
+            'files_height' => 0,
+            'files_width' => 0,
+            'files_url' => $url,
+            'mine_type' => $file->getUploadMineType(),
+            'disk' => $disk,
+            'type' => strstr($file->getUploadMineType(),'/',true)
+        ];
+        if (substr($file->getUploadMineType(), 0, 5) == 'image') {
+            $size = getimagesize($file);
+            $info['files_height'] = $size[1];
+            $info['files_width'] = $size[0];
+        }
+        return $info;
+    }
+}
 

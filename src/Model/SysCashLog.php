@@ -89,7 +89,8 @@ class SysCashLog extends Model
 
     ];
     protected $casts = [
-        'amount' => PriceLogic::class
+        'amount' => PriceLogic::class,
+        'real_amount' => PriceLogic::class
     ];
 
     /**

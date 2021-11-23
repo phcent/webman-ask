@@ -32,20 +32,20 @@ class FollowerService
     public static function createFollower($userId,$themeId,$type)
     {
         if($type == 'user'){
-            $follower = AskFollower::where('user_id',$userId)->where('to_user_id',$themeId)->first();
+            $follower = AskFollower::where('user_id',$userId)->where('theme_id',$themeId)->where('type',7)->first();
             if($follower != null){
                 throw new \Exception('你已经关注过了');
             }
             AskFollower::create([
                 'user_id' => $userId,
-                'to_user_id' => $themeId
+                'theme_id' => $themeId,
+                'type'=>7
             ]);
             //增加会员关注数量
             AskUserService::optionsNum($userId,'follow');
             AskUserService::optionsNum($themeId,'fans');
-
         }else{
-            $follower = AskFollower::where('user_id',$userId)->where('question_id',$themeId)->first();
+            $follower = AskFollower::where('user_id',$userId)->where('type',1)->where('theme_id',$themeId)->first();
             if($follower != null){
                 throw new \Exception('你已经关注过了');
             }
@@ -55,7 +55,8 @@ class FollowerService
             }
             AskFollower::create([
                 'user_id' => $userId,
-                'question_id' => $themeId
+                'theme_id' => $themeId,
+                'type' => 1
             ]);
             $question->increment('follow_num');
              //增加会员关注数量
@@ -66,7 +67,7 @@ class FollowerService
                 'user_id' => $userId,
                 'type' => 1,
                 'item_id' => $themeId,
-                'operation_stage' => 'collection',
+                'operation_stage' => 'follow',
                 'title' => $question->title,
                 'content' => ''
             ]);
@@ -84,9 +85,9 @@ class FollowerService
     public static function deleteFollower($userId,$themeId,$type)
     {
         if($type == 'user'){
-            $follower = AskFollower::where('user_id',$userId)->where('to_user_id',$themeId)->first();
-            if($follower != null){
-                throw new \Exception('你已经关注过了');
+            $follower = AskFollower::where('user_id',$userId)->where('type',7)->where('theme_id',$themeId)->first();
+            if($follower == null){
+                throw new \Exception('你已经取消关注了');
             }
             AskFollower::destroy($follower->id);
             //增加会员关注数量
@@ -94,7 +95,7 @@ class FollowerService
             AskUserService::optionsNum($themeId,'fans','del');
 
         }else{
-            $follower = AskFollower::where('user_id',$userId)->where('question_id',$themeId)->first();
+            $follower = AskFollower::where('user_id',$userId)->where('type',1)->where('theme_id',$themeId)->first();
             if($follower == null){
                 throw new \Exception('你已经取消关注了');
             }

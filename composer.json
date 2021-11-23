@@ -15,7 +15,10 @@
     "guzzlehttp/guzzle": "^7.3",
     "symfony/mailer": "^5.3",
     "symfony/cache": "^5.2",
-    "vlucas/phpdotenv": ">=4.1,<6.0"
+    "vlucas/phpdotenv": ">=4.1,<6.0",
+    "phcent/webman-filesystem": "^1.0",
+    "yansongda/pay": "~3.0.0",
+    "laravolt/avatar": "^4.1"
   },
   "license": "AGPL-3.0-only",
   "autoload": {
@@ -26,6 +29,12 @@
       "helpers.php"
     ]
   },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.x-dev"
+    }
+  },
+  "minimum-stability": "dev",
   "authors": [
     {
       "name": "Uncle Song",

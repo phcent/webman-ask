@@ -36,6 +36,10 @@ class ReportService
     public static function create($params,$userId)
     {
         $content = '';
+        $report = AskReport::where('user_id',$userId)->where('theme_id',$params['theme_id'])->where('type',$params['type'])->first();
+        if($report != null){
+            throw new \Exception('已经举报过了');
+        }
         switch ($params['type']){
             case 1:
                 $info = AskQuestion::where('id',$params['theme_id'])->first();

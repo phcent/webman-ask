@@ -30,7 +30,7 @@ class PointsService
      * @param $user
      */
     public static function postReward($question,$user){
-        if($question->reward_points > 0 && $question->reward_points <= $user->available_balance){
+        if($question->reward_points > 0 && $question->reward_points <= $user->available_points){
             SysPointsLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->nick_name,
@@ -42,9 +42,54 @@ class PointsService
                 'description' => '发布悬赏问题,编号：'.$question->id.'冻结积分：'.$question->reward_points
             ]);
             //减少可用余额 增加冻结余额
-            $user->increment('freeze_points'); //增加
-            $user->decrement('available_points');//减少
+            $user->increment('freeze_points',bcmul($question->reward_points,100,0)); //增加
+            $user->decrement('available_points',bcmul($question->reward_points,100,0));//减少
         }
+    }
+
+    /**
+     * 追加悬赏积分
+     * @param $points
+     * @param $id
+     * @param $user
+     */
+    public static function appendReward($points,$id,$user){
+        if($points > 0 && $points <= $user->available_points){
+            SysPointsLog::create([
+                'user_id' => $user->id,
+                'user_name' => $user->nick_name,
+                'available_points' => -$points,
+                'freeze_points' => $points,
+                'old_available_points' => $user->available_points,
+                'old_freeze_points' => $user->freeze_points,
+                'operation_stage' => 'appendReward',
+                'description' => '问题追加悬赏,编号：'.$id.'冻结积分：'.$points
+            ]);
+            //减少可用余额 增加冻结余额
+            $user->increment('freeze_points',bcmul($points,100,0)); //增加
+            $user->decrement('available_points',bcmul($points,100,0));//减少
+        }
+    }
+    /**
+     * 退回悬赏金额
+     * @param $question
+     */
+    public static function backReward($question)
+    {
+        $user = SysUser::where('id',$question->user_id)->withTrashed()->first();
+        SysPointsLog::create([
+            'user_id' => $user->id,
+            'user_name' => $user->nick_name,
+            'available_points' => -$question->reward_points,
+            'freeze_points' => $question->reward_points,
+            'old_available_points' => $user->available_points,
+            'old_freeze_points' => $user->freeze_points,
+            'operation_stage' => 'backReward',
+            'description' => '关闭悬赏问题,编号：'.$question->id.'解冻积分：'.$question->reward_points
+        ]);
+        //减少冻结积分 增加可用积分
+        $user->decrement('freeze_points',bcmul($question->reward_points,100,0)); //减少
+        $user->increment('available_points',bcmul($question->reward_points,100,0));//增加
     }
 
     /**
@@ -67,8 +112,8 @@ class PointsService
                 'description' => '删除问题回答,编号：'.$askAnswer->id.'减少积分：'. $points
             ]);
             //减少可用积分
-            $user->decrement('available_points',$points);//减少
-            $user->decrement('points',$points);//减少
+            $user->decrement('available_points',bcmul($points,100,0));//减少
+            $user->decrement('points',bcmul($points,100,0));//减少
 
         }
     }
@@ -93,8 +138,8 @@ class PointsService
                 'description' => '发布问题回答,编号：'.$askAnswer->question_id.'增加积分：'. $points
             ]);
             //增加可用积分
-            $user->increment('available_points',$points);//增加
-            $user->increment('points',$points);//增加
+            $user->increment('available_points',bcmul($points,100,0));//增加
+            $user->increment('points',bcmul($points,100,0));//增加
         }
     }
 
@@ -124,8 +169,8 @@ class PointsService
                 'description' => $description
             ]);
             //减少可用积分
-            $user->decrement('available_points',$points);//减少
-            $user->decrement('points',$points);//减少
+            $user->decrement('available_points',bcmul($points,100,0));//减少
+            $user->decrement('points',bcmul($points,100,0));//减少
         }
     }
 
@@ -155,8 +200,8 @@ class PointsService
                 'description' => $description
             ]);
             //增加可用积分
-            $user->increment('available_points',$points);//增加
-            $user->increment('points',$points);//增加
+            $user->increment('available_points',bcmul($points,100,0));//增加
+            $user->increment('points',bcmul($points,100,0));//增加
         }
     }
 
@@ -180,8 +225,8 @@ class PointsService
                 'description' => '发布问题,编号：'.$askQuestion->id.'增加积分：'. $points
             ]);
             //增加可用积分
-            $user->increment('available_points',$points);//增加
-            $user->increment('points',$points);//增加
+            $user->increment('available_points',bcmul($points,100,0));//增加
+            $user->increment('points',bcmul($points,100,0));//增加
         }
     }
 
@@ -205,8 +250,8 @@ class PointsService
                 'description' => '发布文章,编号：'.$askArticle->id.'增加积分：'. $points
             ]);
             //增加可用积分
-            $user->increment('available_points',$points);//增加
-            $user->increment('points',$points);//增加
+            $user->increment('available_points',bcmul($points,100,0));//增加
+            $user->increment('points',bcmul($points,100,0));//增加
         }
     }
 
@@ -234,7 +279,7 @@ class PointsService
             'description' => '悬赏问题,编号：'.$question->id.',采纳最佳答案,扣除冻结积分：'.$question->reward_points
         ]);
         //减少冻结积分
-        $user->decrement('freeze_points',$question->freeze_points); //直接减少冻结积分
+        $user->decrement('freeze_points',bcmul($question->freeze_points,100,0)); //直接减少冻结积分
 
         $bestUser = SysUser::where('id',$userId)->first();
         if($bestUser != null){
@@ -269,6 +314,8 @@ class PointsService
         if($user == null){
             throw new \Exception('会员异常');
         }
+        $old_available_points = $user->available_points;
+        $old_freeze_points = $user->freeze_points;
         $available_balance = 0 ;
         $freeze_balance = 0;
         $operation_stage = '';
@@ -278,29 +325,29 @@ class PointsService
                 $available_balance = $amount;
                 $operation_stage = 'increasePoints';
                 $description = "系统调整积分，增加积分{$amount}，操作者编号{$adminId}";
-                $user->increment('available_points',$amount);//增加可用
+                $user->increment('available_points',bcmul($amount,100,0));//增加可用
                 break;
             case 'decrease':
                 $operation_stage = 'decreasePoints';
                 $available_balance = -$amount;
                 $description = "系统调整积分，减少积分 {$amount}，操作者编号{$adminId}";
-                $user->decrement('available_points',$amount);//减少可用
+                $user->decrement('available_points',bcmul($amount,100,0));//减少可用
                 break;
             case 'freeze':
                 $operation_stage = 'freezePoints';
                 $available_balance = -$amount;
                 $freeze_balance = $amount;
                 $description = "系统调整积分，冻结积分 {$amount}，操作者编号{$adminId}";
-                $user->increment('freeze_points',$amount); //增加冻结
-                $user->decrement('available_points',$amount);//减少可用
+                $user->increment('freeze_points',bcmul($amount,100,0)); //增加冻结
+                $user->decrement('available_points',bcmul($amount,100,0));//减少可用
                 break;
             case 'unfreeze':
                 $operation_stage = 'unfreezePoints';
                 $available_balance = $amount;
                 $freeze_balance = -$amount;
                 $description = "系统调整积分，解冻积分 {$amount}，操作者编号{$adminId}";
-                $user->decrement('freeze_points',$amount); //减少冻结
-                $user->increment('available_points',$amount);//增加可用
+                $user->decrement('freeze_points',bcmul($amount,100,0)); //减少冻结
+                $user->increment('available_points',bcmul($amount,100,0));//增加可用
                 break;
         }
         SysPointsLog::create([
@@ -308,8 +355,8 @@ class PointsService
             'user_name' => $user->nick_name,
             'available_points' => $available_balance,
             'freeze_points' => $freeze_balance,
-            'old_available_points' => $user->available_points,
-            'old_freeze_points' => $user->freeze_points,
+            'old_available_points' => $old_available_points,
+            'old_freeze_points' => $old_freeze_points,
             'operation_stage' => $operation_stage,
             'description' => $description
         ]);

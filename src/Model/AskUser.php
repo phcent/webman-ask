@@ -91,7 +91,7 @@ class AskUser extends Model
         'follow_num' => 0,
         'view_num' => 0,
         'fans_num' => 0,
-        'is_expert' => 2,
+        'expert_status' => 10,
         'grade_id' => 1,
         'answer_best_num' => 0,
         'hot_sort' => 0,

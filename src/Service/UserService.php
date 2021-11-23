@@ -126,6 +126,7 @@ class UserService
      * @param $name
      * @param int $type
      * @throws \Overtrue\EasySms\Exceptions\InvalidArgumentException
+     * @throws \Exception
      */
     public static function getCode($name,$type = 1)
     {
@@ -269,8 +270,40 @@ class UserService
             'content' => $text,
             'route' => $router,
             'param' => $params,
-            'ip' => request()->getRealIp(),
-            'site_id' => request()->siteId
+            'ip' => request()->getRealIp()
         ]);
+    }
+
+    /**
+     * 绑定邮箱或手机号
+     * @param $params
+     * @param $user
+     * @return false|mixed
+     * @throws \Exception
+     */
+    public static function bindMobileEmail($params,$user)
+    {
+        $is_mobile = phcentIsPhoneNumber($params->name);
+        $is_email = phcentIsEmailText($params->name);
+        if ($is_mobile){
+            if(CodeLogService::verifyCode($params->name,$params->code,1)){
+                $user->mobile = $params->name;
+                $user->mobile_verified_at = Date::now();
+                $user->save();
+            }else{
+                throw new \Exception('验证码错误');
+            }
+
+        }else if($is_email){
+            if(CodeLogService::verifyCode($params->name,$params->code,1,1)){
+                $user->email = $params->name;
+                $user->email_verified_at = Date::now();
+                $user->save();
+            }else{
+                throw new \Exception('验证码错误');
+            }
+        }else{
+            throw new \Exception('数据异常');
+        }
     }
 }

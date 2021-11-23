@@ -110,4 +110,9 @@ class AskTags extends Model
         return $this->hasOne(AskArticle::class,'id','article_id');
     }
 
+    public function follow()
+    {
+        return $this->hasMany(AskFollower::class,'theme_id','id')->where('type',5);
+    }
+
 }

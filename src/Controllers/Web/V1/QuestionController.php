@@ -26,6 +26,7 @@ use Phcent\WebmanAsk\Model\AskFollower;
 use Phcent\WebmanAsk\Model\AskQuestion;
 use Phcent\WebmanAsk\Model\AskTags;
 use Phcent\WebmanAsk\Model\AskTagsQa;
+use Phcent\WebmanAsk\Model\SysUser;
 use Phcent\WebmanAsk\Service\CategoryService;
 use Phcent\WebmanAsk\Service\IndexService;
 use Phcent\WebmanAsk\Service\QuestionService;
@@ -45,17 +46,35 @@ class QuestionController
         try {
             phcentMethod(['GET']);
             $askQuestion = new AskQuestion();
+            $topList = AskQuestion::where('top_sort','>',0)->with(['tags','user'])->get();
+            $topList->map(function ($item){
+                if($item->tags != null){
+                    $item->tags->map(function ($item2){
+                        $item2->setVisible(['id','name']);
+                    });
+                }
+                if($item->user == null){
+                    $item->user_name = '异常';
+                }else{
+                    $item->user_name = $item->user->nick_name;
+                }
+                $item->setHidden(['user']);
+            });
+            $data['top_list'] = $topList;
             $params = phcentParams(['cate_id']);
             $askQuestion = phcentWhereParams($askQuestion,$params);
+            if($topList->count() > 0){
+                $askQuestion = $askQuestion->whereNotIn('id',$topList->pluck('id'));
+            }
             $type = $request->input('type','new');
             switch ($type){
                 case 'hot':
-                    $askQuestion = $askQuestion->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
+                    $askQuestion = $askQuestion->where('status','<>',0)->where('hot_sort','>',0)->orderBy('hot_sort','desc')->orderBy('id','desc')->orderBy('view_num','desc');
                     break;
                 case 'price':
                     $askQuestion = $askQuestion->where(function ($query){
                         return $query->where('reward_balance','>','0')->orWhere('reward_points','>','0');
-                    })->orderBy('id','desc');
+                    })->where('status','<>',0)->orderBy('id','desc');
                     break;
                 case 'unsolved':
                     $askQuestion = $askQuestion->where('status',1)->orderBy('id','desc');
@@ -67,7 +86,7 @@ class QuestionController
                     $askQuestion = $askQuestion->where('status',2)->orderBy('id','desc');
                     break;
                 case 'unsettled':
-                    $askQuestion = $askQuestion->where('reward_time','<',Date::now()->subDays(config('phcentask.rewardTime',7)))->where('status',1)->orderBy('id','desc');
+                    $askQuestion = $askQuestion->where('reward_time','<',Date::now()->subDays(config('phcentask.rewardTime',7)))->where('status','<>',2)->orderBy('id','desc');
                     break;
                 default:
                     $askQuestion = $askQuestion->where('status','<>',0)->orderBy('id','desc');
@@ -107,7 +126,17 @@ class QuestionController
     {
         try {
             phcentMethod(['GET']);
-            $info = AskQuestion::where('id',$id)->with('tags')->first();
+            $userId = AuthLogic::getInstance()->userId();
+            $info = AskQuestion::where('id',$id)->with(['tags',
+                'follow' => function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                },
+                'digg' => function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                },
+                'collection' => function($query) use ($userId) {
+                    $query->where('user_id',$userId);
+                }])->first();
             if($info == null){
                 throw new \Exception('问题不存在,或已被删除');
             }
@@ -117,59 +146,38 @@ class QuestionController
                     $item->setVisible(['id','name']);
                 });
             }
-            $data['info'] = $info;
-            $data['is_collection'] = 0; //是否收藏
-            $data['is_follow'] = 0; //是否关注
-            $data['show_close'] = 0; //是否显示关闭
-            $data['show_delete'] = 0; //是否显示删除
-            $data['show_edit'] = 0; //是否显示补充问题
-            $data['show_reward'] = 0; //是否显示追加悬赏
-            $data['show_set'] = 0; //是否显示设置
-            $data['is_digg'] = 0; //是否顶过
-            $data['is_step'] = 0; //是否踩过
-            $data['show_answer'] = 0; //是否可回答
-            $user = AuthLogic::getInstance()->user();
-            $userId = 0;
-            if($user != null){
-                $userId = $user->id;
-                //判断是否收藏
-                $isCollection = AskCollection::where('user_id',$user->id)->where('type',1)->where('theme_id',$info->id)->first();
-                if($isCollection != null){
-                    $data['is_follow'] = 1; //是否收藏
+            $info->is_collection =  $info->collection->count() > 0 ? 1 : 0; //是否收藏
+            $info->is_follow = $info->follow->count() > 0 ? 1 : 0; //是否关注
+            $info->show_close = 0; //是否显示关闭
+            $info->show_delete = 0; //是否显示删除
+            $info->show_edit = 0; //是否显示补充问题
+            $info->show_reward = 0; //是否显示追加悬赏
+            $info->show_set = 0; //是否显示设置
+            $info->is_digg = $info->digg->where('conduct','up')->first() != null ? 1 : 0; //是否顶过
+            $info->is_step = $info->digg->where('conduct','down')->first() != null ? 1 : 0; //是否踩过
+            $info->show_answer = 0; //是否可回答
+            if(in_array($info->status,[1,2])){
+                $info->show_answer = 1;
+            }
+            if(!empty($userId)){
+                if($info->user_id == $userId){
+                    $info->show_edit = 1; //是否显示补充问题
+                    $info->show_reward = 1; //是否显示追加悬赏
+                    $info->show_delete = 1; //是否显示删除
                 }
-                $isFollow =AskFollower::where('user_id',$user->id)->where('question_id',$info->id)->first();
-                if($isFollow != null){
-                    $data['is_collection'] = 1; //是否收藏
-                }
-                $digg = AskDigg::where('user_id',$userId)->where('type',1)->where('theme_id',$id)->get();
-                $isDigg = $digg->where('conduct','up')->first();
-                $isStep = $digg->where('conduct','down')->first();
-                if($isDigg != null){
-                    $data['is_digg'] = 1;
-                }
-                if($isStep != null){
-                    $data['is_step'] = 1;
-                }
-                if(in_array($info->status,[1,2])){
-                    $data['show_answer'] = 1;
-                }
-
-                if($info->user_id == $user->id){
-                    $data['show_edit'] = 1; //是否显示补充问题
-                    $data['show_reward'] = 1; //是否显示追加悬赏
-                }
-                $adminRole = IndexService::isHaveAdminRole($user->id,$info->cate_id);
+                $adminRole = IndexService::isHaveAdminRole($userId,$info->cate_id);
                 if($adminRole){
-                    $data['show_close'] = 1; //是否显示关闭
-                    $data['show_delete'] = 1; //是否显示删除
-                    $data['show_set'] = 1; //是否显示设置
-                    $data['show_edit'] = 1; //是否显示补充问题
-                    $data['show_reward'] = 1; //是否显示追加悬赏
-                    $data['show_answer'] = 1;
+                    $info->show_close = 1; //是否显示关闭
+                    $info->show_delete = 1; //是否显示删除
+                    $info->show_set = 1; //是否显示设置
+                    $info->show_edit = 1; //是否显示补充问题
+                    $info->show_reward = 1; //是否显示追加悬赏
+                    $info->show_answer = 1;
                 }
             }
+            $info->setHidden(['follow','digg','collection']);
+            $data['info'] = $info;
             $data['userCard'] = IndexService::getUserCard($info->user_id,$userId);
-
             $data['reasonList'] = config('phcentask.reasonList');
             $data['addPoints'] =  config('phcentask.addPoints');
             $data['addBalance'] =  config('phcentask.addBalance');
@@ -198,6 +206,14 @@ class QuestionController
                 $data['cateList'] = AskCategory::where('type',1)->get();
                 $data['recommendBalance'] =config('phcentask.recommendBalance');
                 $data['recommendPoints'] = config('phcentask.recommendPoints');
+                $data['rewardTime'] = config('phcentask.rewardTime');
+                $params = phcentParams(['user_id','tag_id']);
+                if(isset($params['user_id']) && !empty($params['user_id'])){
+                    $data['userInfo'] = SysUser::where('id',$params['user_id'])->select(['id','nick_name'])->first();
+                }
+                if(isset($params['tag_id']) && !empty($params['tag_id'])){
+                    $data['tagInfo'] = AskTags::where('id',$params['tag_id'])->select(['id','name'])->first();
+                }
                 return phcentSuccess($data);
             }else{
                 Validator::input($request->post(), [
@@ -206,7 +222,7 @@ class QuestionController
                     'cate_id' => Validator::digit()->min(1)->setName('问题分类'),
                     'is_private' => Validator::digit()->in([1,2])->setName('是否私有'),
                 ]);
-                $params = phcentParams(['title','content','cate_id'=>0,'reward_balance'=>0,'reward_points'=>0,'keyword'=>'','description'=>'','is_private'=>2,'tags']);
+                $params = phcentParams(['title','content','cate_id'=>0,'reward_balance'=>0,'reward_points'=>0,'seo_title'=>'','seo_keyword'=>'','seo_description'=>'','is_private'=>2,'tags']);
                 $userId = AuthLogic::getInstance()->userId();
                 if(empty($userId)){
                     throw new \Exception('请先登入');
@@ -259,7 +275,7 @@ class QuestionController
                     'content' => Validator::length(10,10000)->setName('提问内容'),
                     'cate_id' => Validator::digit()->min(1)->setName('问题分类'),
                 ]);
-                $params = phcentParams(['title','content','cate_id'=>0,'seo_title'=>'','seo_keyword'=>'','seo_description'=>'','is_private'=>2,'tags']);
+                $params = phcentParams(['title','content','cate_id'=>0,'seo_title','seo_keyword','seo_description','is_private'=>2,'tags']);
                 $userId = AuthLogic::getInstance()->userId();
                 if(empty($userId)){
                     throw new \Exception('请先登入');
@@ -323,7 +339,7 @@ class QuestionController
             Db::connection()->beginTransaction();
             QuestionService::closeQuestion($id,$userId);
             Db::connection()->commit();
-            return phcentSuccess([],'删除成功');
+            return phcentSuccess([],'关闭成功');
         } catch (\Exception $e) {
             Db::connection()->rollBack();
             return phcentError($e->getMessage());
@@ -351,7 +367,7 @@ class QuestionController
             Db::connection()->beginTransaction();
             QuestionService::openQuestion($id,$userId);
             Db::connection()->commit();
-            return phcentSuccess([],'删除成功');
+            return phcentSuccess([],'开启成功');
         } catch (\Exception $e) {
             Db::connection()->rollBack();
             return phcentError($e->getMessage());
@@ -414,7 +430,4 @@ class QuestionController
             return phcentError($e->getMessage());
         }
     }
-
-
-
 }

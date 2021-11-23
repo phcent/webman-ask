@@ -40,7 +40,7 @@ class ExpertsController
             $experts = new AskUser();
             $experts = phcentWhereParams($experts,$request->all());
             $list = $experts->with('user')->whereHas('user')
-                ->where('is_expert',1)
+                ->where('expert_status',1)
                 ->orderBy('hot_sort','desc')
                 ->orderBy('answer_best_num','desc')
                 ->paginate($request->input('limit',config('phcentask.pageLimit')),'*','page',$request->input('page',1));
@@ -51,8 +51,8 @@ class ExpertsController
                 $item->setHidden(['user']);
             }
             $data['list'] = $list->items();
-            $data['categoryList'] = CategoryService::getCategoryList(4);
-            return phcentSuccess($data,'专家列表',[ 'page' => $list->currentPage(),'total' => $list->total()]);
+            $data['categoryList'] = CategoryService::getCategoryList(6);
+            return phcentSuccess($data,'专家列表',[ 'page' => $list->currentPage(),'total' => $list->total(),'hasMore' =>$list->hasMorePages()]);
         }catch (\Exception $e){
             return phcentError($e->getMessage());
         }
